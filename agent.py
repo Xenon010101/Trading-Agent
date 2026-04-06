@@ -3,6 +3,7 @@ from ai_brain import analyze_market
 from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade
+from report import generate_daily_report
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
 import signal
@@ -17,6 +18,7 @@ risk = RiskManager()
 
 # Track if we're shutting down to prevent double-exit
 shutdown_requested = False
+scan_cycle_count = 0
 
 
 def handle_exit(sig, frame):
@@ -29,6 +31,7 @@ def handle_exit(sig, frame):
     print("\n\n" + "=" * 50)
     print("   Shutting down agent...")
     print("=" * 50 + "\n")
+    generate_daily_report()
     print_session_summary()
     sys.exit(0)
 
@@ -136,7 +139,7 @@ def scan_coin(symbol):
 
 def main():
     """Main entry point - runs continuous market scan loop"""
-    global shutdown_requested
+    global shutdown_requested, scan_cycle_count
     
     # Register Ctrl+C handler
     signal.signal(signal.SIGINT, handle_exit)
@@ -155,11 +158,12 @@ def main():
     
     # Main scanning loop
     while not shutdown_requested:
+        scan_cycle_count += 1
         current_time = time.strftime("%H:%M:%S")
         
         # Scan header
         print("\n" + "=" * 50)
-        print(f"  SCAN CYCLE [{current_time}]")
+        print(f"  SCAN CYCLE [{current_time}] #{scan_cycle_count}")
         print(f"  Analyzing {len(WATCHLIST)} coins: {', '.join(WATCHLIST)}")
         print("=" * 50)
         
@@ -177,6 +181,10 @@ def main():
         
         # Show risk manager summary after each cycle
         risk.get_summary()
+        
+        # Generate daily report every 10 cycles
+        if scan_cycle_count % 10 == 0:
+            generate_daily_report()
         
         # Calculate sleep time and wait for next cycle
         sleep_seconds = INTERVAL_MINUTES * 60
