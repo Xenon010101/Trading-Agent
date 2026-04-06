@@ -29,10 +29,12 @@ Market Data:
 {json.dumps(market_data, indent=2)}
 
 Rules:
-- Only BUY if signals are clearly positive and confident
-- SELL if signals are negative or risky
-- HOLD if market conditions are unclear or neutral
-- Be conservative and prioritize protecting capital
+- Be decisive - avoid sitting on the fence
+- If signals are mixed but leaning positive, choose BUY with 60-65% confidence
+- Only use HOLD when signals are truly unclear or contradictory
+- Confidence scores should reflect actual signal strength, not be artificially low
+- SELL only if signals are clearly negative or risky
+- Be aggressive enough to capitalize on opportunities while protecting capital
 
 Respond ONLY in this exact JSON format:
 {{"action": "BUY", "confidence": 75, "reason": "explanation here"}}
@@ -42,13 +44,13 @@ Respond ONLY in this exact JSON format:
         # Initialize client and send request to LLaMA 70B
         client = get_groq_client()
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are a conservative crypto trading expert."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,    # Low temp for consistent, deterministic output
-            max_tokens=200      # Limit response size
+            temperature=0.2,
+            max_tokens=200
         )
         
         # Extract JSON response from LLaMA output
