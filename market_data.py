@@ -84,7 +84,75 @@ def get_market_summary(symbol):
     }
 
 
+def get_market_summary_advanced(symbol):
+    """Enhanced market data with momentum and volatility analysis"""
+    price_data = get_price(symbol)
+    signals_data = get_signals(symbol)
+    
+    # Calculate momentum score
+    signal_text = signals_data.get("signal", "neutral").lower()
+    momentum = 0
+    if "bullish" in signal_text or "buy" in signal_text:
+        momentum = 1
+    elif "bearish" in signal_text or "sell" in signal_text:
+        momentum = -1
+    
+    # Check individual indicators for momentum
+    macd = signals_data.get("macd", "").lower()
+    trend = signals_data.get("trend", "").lower()
+    rsi = signals_data.get("rsi", 50)
+    
+    if "bullish" in macd:
+        momentum += 0.5
+    elif "bearish" in macd:
+        momentum -= 0.5
+    
+    if "uptrend" in trend:
+        momentum += 0.5
+    elif "downtrend" in trend:
+        momentum -= 0.5
+    
+    # RSI momentum contribution
+    if rsi < 40:
+        momentum += 0.5  # Oversold = bullish
+    elif rsi > 60:
+        momentum -= 0.5  # Overbought = bearish
+    
+    # Normalize momentum to -1, 0, or +1
+    if momentum > 0.5:
+        momentum = 1
+    elif momentum < -0.5:
+        momentum = -1
+    else:
+        momentum = 0
+    
+    # Volatility estimate based on change_24h
+    change_24h = price_data.get("change_24h", 0)
+    volume = price_data.get("volume", 0)
+    
+    # High volume + large price change = high volatility
+    volatility = "low"
+    if abs(change_24h) > 5 or volume > 10000000000:
+        volatility = "high"
+    elif abs(change_24h) > 2 or volume > 5000000000:
+        volatility = "medium"
+    
+    return {
+        "symbol": symbol,
+        "price": price_data,
+        "signals": signals_data,
+        "momentum": momentum,
+        "volatility": volatility,
+        "analysis": {
+            "momentum_score": momentum,
+            "volatility_level": volatility,
+            "short_term": signals_data.get("signal", "neutral"),
+            "timeframe": "multi-timeframe"
+        }
+    }
+
+
 if __name__ == "__main__":
     for sym in ["BTC", "ETH", "SOL"]:
-        data = get_market_summary(sym)
+        data = get_market_summary_advanced(sym)
         print(f"{sym}: {json.dumps(data, indent=2)}\n")

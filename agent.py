@@ -1,4 +1,4 @@
-from market_data import get_market_summary
+from market_data import get_market_summary_advanced as get_market_summary
 from ai_brain import analyze_market
 from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
