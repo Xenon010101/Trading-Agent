@@ -1,6 +1,7 @@
 # AI Crypto Trading Agent
-
 ## Hackathon Submission
+
+**Run:** `python agent.py`
 
 An autonomous cryptocurrency trading agent that combines real-time market data with AI-powered decision making. The agent continuously monitors multiple cryptocurrencies, analyzes market conditions through an LLaMA 70B model, and executes trades—either in safe paper trading mode or live via Kraken CLI.
 
