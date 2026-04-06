@@ -28,13 +28,25 @@ def analyze_market(market_data):
 Market Data:
 {json.dumps(market_data, indent=2)}
 
-Rules:
+Analyze these factors in order:
+1. Trend direction (uptrend/downtrend/consolidation)
+2. MACD signal (bullish/bearish crossover)
+3. RSI level (below 30 = oversold = buy opportunity, above 70 = overbought = sell signal)
+4. Overall signal strength
+
+Strict Trading Rules:
+- STRONG BUY: RSI below 40 + MACD bullish + uptrend → confidence 80-90%
+- BUY: MACD bullish + uptrend → confidence 65-75%
+- STRONG SELL: RSI above 70 + MACD bearish → confidence 80-90%
+- SELL: MACD bearish + downtrend → confidence 65-75%
+- HOLD: mixed or unclear signals → confidence 50-60%
+
+Requirements:
+- Always mention specific numbers from the data in your reason
+- Be consistent - same data should give same decision
 - Be decisive - avoid sitting on the fence
-- If signals are mixed but leaning positive, choose BUY with 60-65% confidence
 - Only use HOLD when signals are truly unclear or contradictory
-- Confidence scores should reflect actual signal strength, not be artificially low
-- SELL only if signals are clearly negative or risky
-- Be aggressive enough to capitalize on opportunities while protecting capital
+- Confidence scores should reflect actual signal strength
 
 Respond ONLY in this exact JSON format:
 {{"action": "BUY", "confidence": 75, "reason": "explanation here"}}
