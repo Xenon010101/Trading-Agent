@@ -72,7 +72,7 @@ def scan_coin(symbol):
     
     if data is None:
         print(f"   [!] Skipping {symbol} - no data received")
-        return
+        return None
     
     # Step 2: Get AI decision from LLaMA 70B
     decision = analyze_market(data)
@@ -96,6 +96,7 @@ def scan_coin(symbol):
         log_decision(symbol, data, decision, False)
     
     time.sleep(2)  # Brief pause between coins to avoid rate limits
+    return data
 
 
 def main():
@@ -127,9 +128,17 @@ def main():
         print(f"  Analyzing {len(WATCHLIST)} coins: {', '.join(WATCHLIST)}")
         print("=" * 50)
         
-        # Analyze each coin in watchlist
+        # Analyze each coin in watchlist and collect prices
+        current_prices = {}
         for symbol in WATCHLIST:
-            scan_coin(symbol)
+            data = scan_coin(symbol)
+            if data and data.get("price"):
+                price = data["price"].get("price")
+                if price:
+                    current_prices[symbol] = price
+        
+        # Show open positions with current prices
+        risk.get_open_positions(current_prices)
         
         # Show risk manager summary after each cycle
         risk.get_summary()
