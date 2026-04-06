@@ -95,6 +95,12 @@ class RiskManager:
         self.trades_today = 0
         self.daily_pnl = 0
         print("Daily limits reset")
+    
+    def reset_for_new_day(self):
+        """Reset daily counters for a new trading day"""
+        self.trades_today = 0
+        self.daily_pnl = 0.0
+        print("\n  [NEW DAY] Daily counters reset")
 
 
 if __name__ == "__main__":

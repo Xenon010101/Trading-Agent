@@ -9,6 +9,7 @@ import time
 import signal
 import sys
 import os
+from datetime import date
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +20,7 @@ risk = RiskManager()
 # Track if we're shutting down to prevent double-exit
 shutdown_requested = False
 scan_cycle_count = 0
+last_reset_date = date.today()
 
 
 def handle_exit(sig, frame):
@@ -139,7 +141,7 @@ def scan_coin(symbol):
 
 def main():
     """Main entry point - runs continuous market scan loop"""
-    global shutdown_requested, scan_cycle_count
+    global shutdown_requested, scan_cycle_count, last_reset_date
     
     # Register Ctrl+C handler
     signal.signal(signal.SIGINT, handle_exit)
@@ -158,6 +160,14 @@ def main():
     
     # Main scanning loop
     while not shutdown_requested:
+        # Check if date has changed - reset daily counters for new day
+        today = date.today()
+        if today > last_reset_date:
+            print(f"\n  [DATE CHANGE] New day detected: {today}")
+            risk.reset_for_new_day()
+            generate_daily_report()
+            last_reset_date = today
+        
         scan_cycle_count += 1
         current_time = time.strftime("%H:%M:%S")
         
