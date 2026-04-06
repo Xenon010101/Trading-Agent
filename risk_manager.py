@@ -1,6 +1,5 @@
 import json
 import time
-import os
 from config import MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT
 
 

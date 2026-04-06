@@ -50,13 +50,15 @@ def main():
     
     while True:
         current_time = time.strftime("%H:%M:%S")
-        print(f"[{current_time}] Scanning {len(WATCHLIST)} coins...")
+        print(f"\n{'='*50}")
+        print(f"[{current_time}] Starting scan of {len(WATCHLIST)} coins...")
+        print(f"{'='*50}\n")
         
         for symbol in WATCHLIST:
             scan_coin(symbol)
         
         risk.get_summary()
-        print(f"Next scan in {INTERVAL_MINUTES} minutes...\n")
+        print(f"Next scan in {INTERVAL_MINUTES} minutes... (Press Ctrl+C to stop)\n")
         time.sleep(INTERVAL_MINUTES * 60)
 
 

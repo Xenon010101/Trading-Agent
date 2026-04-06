@@ -5,7 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-client = groq.Groq(api_key=GROQ_API_KEY)
+
+
+def get_groq_client():
+    return groq.Groq(api_key=GROQ_API_KEY)
 
 
 def analyze_market(market_data):
@@ -25,6 +28,7 @@ Respond ONLY in this exact JSON format:
 """
     
     try:
+        client = get_groq_client()
         response = client.chat.completions.create(
             model="llama3-70b-8192",
             messages=[

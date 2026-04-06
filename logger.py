@@ -1,6 +1,7 @@
 import json
 import time
 import os
+from config import WATCHLIST
 
 
 def log_decision(symbol, market_data, decision, executed):
@@ -75,8 +76,10 @@ def print_session_summary():
 
 
 def print_banner():
-    print("==========================================")
-    print("   AI Crypto Trading Agent v1.0")
-    print("   Mode: PAPER TRADING (no real money)")
-    print("   Coins: BTC, ETH, SOL")
-    print("==========================================")
+    coins = ", ".join(WATCHLIST)
+    mode = "PAPER TRADING" if os.getenv("PAPER_MODE", "True").lower() == "true" else "LIVE TRADING"
+    print("=" * 45)
+    print("     AI Crypto Trading Agent v1.0")
+    print(f"     Mode: {mode} (no real money)")
+    print(f"     Coins: {coins}")
+    print("=" * 45)
