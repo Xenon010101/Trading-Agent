@@ -3,7 +3,7 @@ from ai_brain import analyze_market
 from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade
-from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, PAPER_MODE
+from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
 import signal
 import sys
@@ -62,7 +62,28 @@ def print_config():
     print(f"   Max Trades   : {MAX_TRADES_PER_DAY}/day")
     print(f"   Min Confidence: {MIN_CONFIDENCE}%")
     print(f"   Max Loss     : {MAX_LOSS_PERCENT}%")
+    print(f"   Take Profit  : {TAKE_PROFIT_PERCENT}%")
+    print(f"   Stop Loss    : {STOP_LOSS_PERCENT}%")
     print("-" * 50 + "\n")
+
+
+def check_exit_conditions(symbol, current_price):
+    """Check if take profit or stop loss is triggered for open position"""
+    if symbol not in risk.positions:
+        return None
+    
+    buy_price = risk.positions[symbol]["buy_price"]
+    pnl_percent = ((current_price - buy_price) / buy_price) * 100
+    
+    if pnl_percent >= TAKE_PROFIT_PERCENT:
+        print(f"\n  💰 TAKE PROFIT TRIGGERED for {symbol} — locking in {pnl_percent:.2f}% gain")
+        return {"action": "SELL", "confidence": 95, "reason": f"Take profit target hit (+{pnl_percent:.2f}%)"}
+    
+    if pnl_percent <= -STOP_LOSS_PERCENT:
+        print(f"\n  ⚠️ STOP LOSS TRIGGERED for {symbol} — selling at loss of {abs(pnl_percent):.2f}%")
+        return {"action": "SELL", "confidence": 95, "reason": f"Stop loss triggered ({pnl_percent:.2f}%)"}
+    
+    return None
 
 
 def scan_coin(symbol):
@@ -74,12 +95,26 @@ def scan_coin(symbol):
         print(f"   [!] Skipping {symbol} - no data received")
         return None
     
-    # Step 2: Get AI decision from LLaMA 70B
+    # Get current price
+    current_price = data.get("price", {}).get("price")
+    
+    # Step 2: Check exit conditions BEFORE asking AI
+    if current_price:
+        exit_decision = check_exit_conditions(symbol, current_price)
+        if exit_decision and risk.can_trade(exit_decision):
+            result = execute_trade(exit_decision["action"], symbol)
+            if result is not None:
+                risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
+                log_decision(symbol, data, exit_decision, True)
+            time.sleep(2)
+            return data
+    
+    # Step 3: Get AI decision from LLaMA 70B
     decision = analyze_market(data)
     
-    # Step 3: Check if trade is allowed by risk manager
+    # Step 4: Check if trade is allowed by risk manager
     if risk.can_trade(decision):
-        # Step 4: Execute the trade (or simulate in paper mode)
+        # Step 5: Execute the trade (or simulate in paper mode)
         executed = False
         result = execute_trade(decision["action"], symbol)
         
@@ -89,7 +124,7 @@ def scan_coin(symbol):
             price = data.get("price", {}).get("price") if data.get("price") else None
             risk.record_trade(symbol, decision["action"], price, decision["confidence"])
         
-        # Step 5: Log the decision with execution status
+        # Step 6: Log the decision with execution status
         log_decision(symbol, data, decision, executed)
     else:
         # Decision blocked by risk manager - still log it
