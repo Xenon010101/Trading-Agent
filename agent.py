@@ -92,6 +92,11 @@ def check_exit_conditions(symbol, current_price):
 
 def scan_coin(symbol):
     """Analyze a single coin and execute if conditions are met"""
+    # Check circuit breaker first
+    if risk.check_circuit_breaker():
+        print(f"   [CIRCUIT BREAKER ACTIVE] Skipping {symbol}")
+        return None
+    
     # Step 1: Fetch market data from PRISM API
     data = get_market_summary(symbol)
     

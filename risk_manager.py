@@ -1,7 +1,7 @@
 import json
 import time
 from datetime import date as datetime
-from config import MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT
+from config import MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, CIRCUIT_BREAKER_THRESHOLD
 
 
 class RiskManager:
@@ -12,6 +12,20 @@ class RiskManager:
         self.positions = {}
         self.start_time = time.time()
         self.last_reset_date = datetime.today()
+        self.circuit_broken = False
+    
+    def check_circuit_breaker(self):
+        """Check if daily loss exceeds circuit breaker threshold"""
+        if self.daily_pnl <= CIRCUIT_BREAKER_THRESHOLD:
+            self.circuit_broken = True
+            print("\n")
+            print("⚠️⚠️⚠️ CIRCUIT BREAKER TRIGGERED ⚠️⚠️⚠️")
+            print(f"Daily loss {self.daily_pnl:.2f}% exceeded threshold {CIRCUIT_BREAKER_THRESHOLD}%")
+            print("All trading halted for today")
+            print("Restart agent tomorrow to resume")
+            print("\n")
+            return True
+        return False
     
     def can_trade(self, decision):
         if self.trades_today >= MAX_TRADES_PER_DAY:
@@ -102,6 +116,7 @@ class RiskManager:
         """Reset daily counters for a new trading day"""
         self.trades_today = 0
         self.daily_pnl = 0.0
+        self.circuit_broken = False
         print("\n  [NEW DAY] Daily counters reset")
 
 
