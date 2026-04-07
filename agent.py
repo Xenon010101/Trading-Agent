@@ -3,7 +3,7 @@ from ai_brain import analyze_market
 from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade
-from report import generate_daily_report
+from report import generate_daily_report, calculate_sharpe_ratio
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
 import signal
@@ -20,7 +20,6 @@ risk = RiskManager()
 # Track if we're shutting down to prevent double-exit
 shutdown_requested = False
 scan_cycle_count = 0
-last_reset_date = date.today()
 
 
 def handle_exit(sig, frame):
@@ -161,12 +160,11 @@ def main():
     # Main scanning loop
     while not shutdown_requested:
         # Check if date has changed - reset daily counters for new day
-        today = date.today()
-        if today > last_reset_date:
-            print(f"\n  [DATE CHANGE] New day detected: {today}")
+        if date.today() > risk.last_reset_date:
+            print(f"\n  [DATE CHANGE] New day detected: {date.today()}")
             risk.reset_for_new_day()
+            risk.last_reset_date = date.today()
             generate_daily_report()
-            last_reset_date = today
         
         scan_cycle_count += 1
         current_time = time.strftime("%H:%M:%S")
@@ -195,6 +193,7 @@ def main():
         # Generate daily report every 10 cycles
         if scan_cycle_count % 10 == 0:
             generate_daily_report()
+            calculate_sharpe_ratio()
         
         # Calculate sleep time and wait for next cycle
         sleep_seconds = INTERVAL_MINUTES * 60

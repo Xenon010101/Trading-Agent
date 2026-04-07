@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import date as datetime
 from config import MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT
 
 
@@ -10,6 +11,7 @@ class RiskManager:
         self.trade_history = []
         self.positions = {}
         self.start_time = time.time()
+        self.last_reset_date = datetime.today()
     
     def can_trade(self, decision):
         if self.trades_today >= MAX_TRADES_PER_DAY:

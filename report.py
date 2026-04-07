@@ -1,5 +1,6 @@
 import json
 import os
+import math
 from datetime import datetime
 
 
@@ -121,5 +122,73 @@ def generate_daily_report():
     }
 
 
+def calculate_sharpe_ratio():
+    """Calculate Sharpe ratio from completed trades in trade_log.txt"""
+    
+    if not os.path.exists("trade_log.txt"):
+        print("  Sharpe Ratio: N/A (no trade log)")
+        return None
+    
+    with open("trade_log.txt", "r") as f:
+        lines = f.readlines()
+    
+    trades = []
+    for line in lines:
+        try:
+            trades.append(json.loads(line.strip()))
+        except:
+            pass
+    
+    if len(trades) < 2:
+        print("  Sharpe Ratio: N/A (need more trades)")
+        return None
+    
+    positions = {}
+    completed_trades = []
+    
+    for trade in trades:
+        symbol = trade.get("symbol")
+        action = trade.get("action")
+        price = trade.get("price", 0)
+        
+        if action == "BUY":
+            positions[symbol] = price
+        elif action == "SELL" and symbol in positions:
+            buy_price = positions[symbol]
+            pnl_percent = ((price - buy_price) / buy_price) * 100
+            completed_trades.append(pnl_percent / 100)
+            del positions[symbol]
+    
+    if len(completed_trades) < 2:
+        print("  Sharpe Ratio: N/A (need more completed trades)")
+        return None
+    
+    avg_return = sum(completed_trades) / len(completed_trades)
+    
+    variance = sum((r - avg_return) ** 2 for r in completed_trades) / len(completed_trades)
+    std_dev = math.sqrt(variance)
+    
+    if std_dev == 0:
+        print("  Sharpe Ratio: N/A (no variance in returns)")
+        return None
+    
+    risk_free_rate = 0.02
+    sharpe = (avg_return - risk_free_rate) / std_dev
+    
+    if sharpe >= 2.0:
+        rating = "excellent"
+    elif sharpe >= 1.0:
+        rating = "good"
+    else:
+        rating = "below average"
+    
+    print(f"\n  Sharpe Ratio: {sharpe:.2f} ({rating})")
+    print(f"  (above 1.0 = good, above 2.0 = excellent)")
+    print(f"  Avg Return: {avg_return*100:+.2f}% | Std Dev: {std_dev*100:.2f}% | Trades: {len(completed_trades)}")
+    
+    return sharpe
+
+
 if __name__ == "__main__":
     generate_daily_report()
+    calculate_sharpe_ratio()

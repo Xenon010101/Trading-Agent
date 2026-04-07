@@ -1,0 +1,9 @@
+Daily Trading Report - 2026-04-06
+========================================
+Total Trades: 245
+BUY Orders: 135
+SELL Orders: 0
+HOLD Decisions: 110
+Win Rate: 0.0%
+Daily PnL: +0.00%
+Most Traded: BTC
