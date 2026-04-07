@@ -2,7 +2,7 @@ from market_data import get_market_summary_advanced as get_market_summary
 from ai_brain import analyze_market
 from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
-from executor import execute_trade
+from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
@@ -159,6 +159,10 @@ def main():
     
     # Show current configuration
     print_config()
+    
+    # Verify Kraken connection if not in paper mode
+    if not PAPER_MODE:
+        verify_kraken_connection()
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     

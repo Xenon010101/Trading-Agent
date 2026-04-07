@@ -8,27 +8,43 @@ KRAKEN_API_KEY = os.getenv("KRAKEN_API_KEY")
 KRAKEN_API_SECRET = os.getenv("KRAKEN_API_SECRET")
 
 
+def verify_kraken_connection():
+    """Verify Kraken API connection is working"""
+    try:
+        result = subprocess.run(
+            ["kraken-cli", "account", "balance"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0:
+            print("✅ Kraken connected")
+            return True
+        else:
+            print("❌ Kraken connection failed - check API keys")
+            return False
+    except Exception:
+        print("❌ Kraken connection failed - check API keys")
+        return False
+
+
 def execute_buy(symbol, amount=0.001):
     if PAPER_MODE:
         print(f"[PAPER] BUY order simulated for {symbol} amount {amount}")
         return {"status": "paper", "symbol": symbol, "action": "BUY", "amount": amount}
     
     try:
-        cmd = [
-            "kraken-cli", "order", "create",
-            "--pair", f"{symbol}USD",
-            "--type", "buy",
-            "--ordertype", "market",
-            "--volume", str(amount)
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        
-        if result.returncode == 0:
-            return {"status": "success", "symbol": symbol, "action": "BUY", "output": result.stdout}
+        exit_code = os.system(
+            f"kraken-cli order create --pair {symbol}USD --type buy --ordertype market --volume {amount}"
+        )
+        if exit_code == 0:
+            print(f"✅ BUY executed: {symbol} {amount}")
+            return {"status": "success", "symbol": symbol, "action": "BUY", "amount": amount}
         else:
-            return {"status": "error", "symbol": symbol, "action": "BUY", "error": result.stderr}
-    
+            print("Trade execution failed")
+            return {"status": "error", "symbol": symbol, "action": "BUY", "error": "Non-zero exit code"}
     except Exception as e:
+        print("Trade execution failed")
         return {"status": "error", "symbol": symbol, "action": "BUY", "error": str(e)}
 
 
@@ -38,21 +54,17 @@ def execute_sell(symbol, amount=0.001):
         return {"status": "paper", "symbol": symbol, "action": "SELL", "amount": amount}
     
     try:
-        cmd = [
-            "kraken-cli", "order", "create",
-            "--pair", f"{symbol}USD",
-            "--type", "sell",
-            "--ordertype", "market",
-            "--volume", str(amount)
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        
-        if result.returncode == 0:
-            return {"status": "success", "symbol": symbol, "action": "SELL", "output": result.stdout}
+        exit_code = os.system(
+            f"kraken-cli order create --pair {symbol}USD --type sell --ordertype market --volume {amount}"
+        )
+        if exit_code == 0:
+            print(f"✅ SELL executed: {symbol} {amount}")
+            return {"status": "success", "symbol": symbol, "action": "SELL", "amount": amount}
         else:
-            return {"status": "error", "symbol": symbol, "action": "SELL", "error": result.stderr}
-    
+            print("Trade execution failed")
+            return {"status": "error", "symbol": symbol, "action": "SELL", "error": "Non-zero exit code"}
     except Exception as e:
+        print("Trade execution failed")
         return {"status": "error", "symbol": symbol, "action": "SELL", "error": str(e)}
 
 
