@@ -4,12 +4,13 @@ from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
+from erc8004 import create_agent_wallet, post_checkpoint, get_checkpoint_summary
+from datetime import date
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
 import signal
 import sys
 import os
-from datetime import date
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,6 +33,7 @@ def handle_exit(sig, frame):
     print("\n\n" + "=" * 50)
     print("   Shutting down agent...")
     print("=" * 50 + "\n")
+    get_checkpoint_summary()
     generate_daily_report()
     print_session_summary()
     sys.exit(0)
@@ -139,6 +141,14 @@ def scan_coin(symbol):
         # Decision blocked by risk manager - still log it
         log_decision(symbol, data, decision, False)
     
+    # Record checkpoint on ERC-8004
+    post_checkpoint(
+        action=decision.get("action", "HOLD"),
+        symbol=symbol,
+        confidence=decision.get("confidence", 0),
+        reason=decision.get("reason", "No decision")
+    )
+    
     time.sleep(2)  # Brief pause between coins to avoid rate limits
     return data
 
@@ -163,6 +173,10 @@ def main():
     # Verify Kraken connection if not in paper mode
     if not PAPER_MODE:
         verify_kraken_connection()
+    
+    # Setup ERC-8004 blockchain integration
+    create_agent_wallet()
+    print("  ERC-8004 Checkpoints : ACTIVE")
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     

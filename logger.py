@@ -78,8 +78,12 @@ def print_session_summary():
 def print_banner():
     coins = ", ".join(WATCHLIST)
     mode = "PAPER TRADING" if os.getenv("PAPER_MODE", "True").lower() == "true" else "LIVE TRADING"
-    print("=" * 45)
-    print("     AI Crypto Trading Agent v1.0")
-    print(f"     Mode: {mode} (no real money)")
+    print("=============================================")
+    print("     InsiderEdge 🤖")
+    print("     Autonomous AI Crypto Trading Agent")
+    print("     Powered by Groq AI + PRISM + Kraken")
+    print("=============================================")
+    print(f"     Mode: {mode}")
     print(f"     Coins: {coins}")
-    print("=" * 45)
+    print("     ERC-8004         : ACTIVE (Sepolia testnet)")
+    print("=============================================")

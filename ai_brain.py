@@ -89,7 +89,12 @@ Respond ONLY in this exact JSON format:
         return json.loads(json_str)
     
     except Exception as e:
-        # On any error (API, network, parsing), default to HOLD
+        # Handle rate limit specifically
+        if "429" in str(e) or "rate_limit" in str(e).lower():
+            print(f"⚠️ Groq rate limit hit - pausing AI analysis")
+            return {"action": "HOLD", "confidence": 0, "reason": "Rate limit - waiting for reset"}
+        
+        # On any other error, default to HOLD
         print(f"AI analysis error: {e}")
         return {"action": "HOLD", "confidence": 0, "reason": "AI error"}
 

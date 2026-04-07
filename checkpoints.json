@@ -1,0 +1,67 @@
+[
+  {
+    "agent_address": "0x0000000000000000000000000000000000000000",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "timestamp": "2026-04-07T18:47:40.671460",
+    "blockchain": "ethereum",
+    "network": "sepolia",
+    "signed": false
+  },
+  {
+    "agent_address": "0x0000000000000000000000000000000000000000",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "timestamp": "2026-04-07T18:47:45.285008",
+    "blockchain": "ethereum",
+    "network": "sepolia",
+    "signed": false
+  },
+  {
+    "agent_address": "0x0000000000000000000000000000000000000000",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "timestamp": "2026-04-07T18:47:50.506476",
+    "blockchain": "ethereum",
+    "network": "sepolia",
+    "signed": false
+  },
+  {
+    "timestamp": "2026-04-07 19:09:27",
+    "action": "BUY",
+    "symbol": "BTC",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. The RSI level is 58, which is not overbought or oversold. The volatility level is low, which reduces the risk. Considering these factors, the conditions for a BUY signal are met: MACD bullish + uptrend + positive momentum. The confidence level is 75, as the momentum score is positive and the trend is uptrend, but the RSI is not below 40, which would have increased the confidence to 80-90%.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72"
+  },
+  {
+    "timestamp": "2026-04-07 19:09:33",
+    "action": "BUY",
+    "symbol": "ETH",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. Although the RSI level is 62, which is not in the oversold region, it's also not in the overbought region. The volatility level is low, which reduces the risk. Considering the MACD bullish signal, uptrend, and positive momentum, the confidence level is 75%. The data meets the 'BUY' condition: MACD bullish + uptrend + positive momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72"
+  },
+  {
+    "timestamp": "2026-04-07 19:09:39",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72"
+  },
+  {
+    "timestamp": "2026-04-07 19:11:44",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72"
+  }
+]
