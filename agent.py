@@ -4,7 +4,7 @@ from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
-from erc8004 import create_agent_wallet, post_checkpoint, get_checkpoint_summary
+from erc8004 import create_agent_wallet, post_checkpoint, get_checkpoint_summary, register_agent, claim_allocation, submit_trade_intent
 from datetime import date
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
@@ -73,6 +73,25 @@ def print_config():
     print("-" * 50 + "\n")
 
 
+def setup_agent():
+    """Register agent on blockchain and claim allocation"""
+    agent_id = os.getenv("AGENT_ID", "")
+    
+    if not agent_id:
+        print("\n  Setting up ERC-8004 agent...")
+        try:
+            agent_id = register_agent()
+            if agent_id:
+                claim_allocation()
+            else:
+                print("  [!] Registration failed - running without on-chain features")
+        except Exception as e:
+            print(f"  [!] On-chain setup failed: {e}")
+            print("  [!] Running in offline mode")
+    
+    print(f"  ERC-8004 Checkpoints : ACTIVE (ID: {agent_id or 'N/A'})")
+
+
 def check_exit_conditions(symbol, current_price):
     """Check if take profit or stop loss is triggered for open position"""
     if symbol not in risk.positions:
@@ -82,11 +101,11 @@ def check_exit_conditions(symbol, current_price):
     pnl_percent = ((current_price - buy_price) / buy_price) * 100
     
     if pnl_percent >= TAKE_PROFIT_PERCENT:
-        print(f"\n  💰 TAKE PROFIT TRIGGERED for {symbol} — locking in {pnl_percent:.2f}% gain")
+        print(f"\n  [TP] TAKE PROFIT TRIGGERED for {symbol} — locking in {pnl_percent:.2f}% gain")
         return {"action": "SELL", "confidence": 95, "reason": f"Take profit target hit (+{pnl_percent:.2f}%)"}
     
     if pnl_percent <= -STOP_LOSS_PERCENT:
-        print(f"\n  ⚠️ STOP LOSS TRIGGERED for {symbol} — selling at loss of {abs(pnl_percent):.2f}%")
+        print(f"\n  [SL] STOP LOSS TRIGGERED for {symbol} — selling at loss of {abs(pnl_percent):.2f}%")
         return {"action": "SELL", "confidence": 95, "reason": f"Stop loss triggered ({pnl_percent:.2f}%)"}
     
     return None
@@ -116,6 +135,7 @@ def scan_coin(symbol):
             result = execute_trade(exit_decision["action"], symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
+                submit_trade_intent(exit_decision["action"], symbol)
                 log_decision(symbol, data, exit_decision, True)
             time.sleep(2)
             return data
@@ -134,6 +154,9 @@ def scan_coin(symbol):
             # Extract price from market data for logging
             price = data.get("price", {}).get("price") if data.get("price") else None
             risk.record_trade(symbol, decision["action"], price, decision["confidence"])
+            
+            # Submit trade intent to RiskRouter
+            submit_trade_intent(decision["action"], symbol)
         
         # Step 6: Log the decision with execution status
         log_decision(symbol, data, decision, executed)
@@ -149,7 +172,7 @@ def scan_coin(symbol):
         reason=decision.get("reason", "No decision")
     )
     
-    time.sleep(2)  # Brief pause between coins to avoid rate limits
+    time.sleep(15)  # Pause between coins to avoid Groq rate limits
     return data
 
 
@@ -176,7 +199,7 @@ def main():
     
     # Setup ERC-8004 blockchain integration
     create_agent_wallet()
-    print("  ERC-8004 Checkpoints : ACTIVE")
+    setup_agent()
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     

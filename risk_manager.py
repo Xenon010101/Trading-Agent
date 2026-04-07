@@ -19,7 +19,7 @@ class RiskManager:
         if self.daily_pnl <= CIRCUIT_BREAKER_THRESHOLD:
             self.circuit_broken = True
             print("\n")
-            print("⚠️⚠️⚠️ CIRCUIT BREAKER TRIGGERED ⚠️⚠️⚠️")
+            print("[!!!] CIRCUIT BREAKER TRIGGERED [!!!]")
             print(f"Daily loss {self.daily_pnl:.2f}% exceeded threshold {CIRCUIT_BREAKER_THRESHOLD}%")
             print("All trading halted for today")
             print("Restart agent tomorrow to resume")

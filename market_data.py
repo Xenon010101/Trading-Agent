@@ -50,10 +50,22 @@ def get_price(symbol):
             response = requests.get(cg_url, timeout=10)
             if response.status_code == 200:
                 data = response.json()
+                print(f"[DEBUG] CoinGecko raw response for {symbol}: {data}")
                 price = data.get(coin_id, {}).get("usd", 0)
+                
+                # Sanity check - ETH should not be > $10,000
+                if symbol == "ETH" and price > 10000:
+                    print(f"[WARN] ETH price {price} seems wrong, using mock data")
+                    return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})
+                
+                # BTC should not be > $1,000,000
+                if symbol == "BTC" and price > 1000000:
+                    print(f"[WARN] BTC price {price} seems wrong, using mock data")
+                    return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})
+                
                 return {"price": price}
-        except:
-            pass
+        except Exception as e:
+            print(f"[DEBUG] CoinGecko error: {e}")
     
     # Last resort: mock data
     return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})

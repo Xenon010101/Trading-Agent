@@ -29,12 +29,11 @@ def log_decision(symbol, market_data, decision, executed):
     reason = decision.get("reason", "")
     time_str = time.strftime("%H:%M:%S")
     
-    emoji = {"BUY": "🟢", "SELL": "🔴", "HOLD": "🟡"}.get(action, "⚪")
     executed_str = "Yes" if executed else "No"
     
     print("----------------------------------------")
     print(f"[{time_str}] {symbol} Analysis Complete")
-    print(f"Action     : {action} {emoji}")
+    print(f"Action     : {action}")
     print(f"Confidence : {confidence}%")
     print(f"Reason     : {reason}")
     print(f"Executed   : {executed_str}")
@@ -79,7 +78,7 @@ def print_banner():
     coins = ", ".join(WATCHLIST)
     mode = "PAPER TRADING" if os.getenv("PAPER_MODE", "True").lower() == "true" else "LIVE TRADING"
     print("=============================================")
-    print("     InsiderEdge 🤖")
+    print("     InsiderEdge")
     print("     Autonomous AI Crypto Trading Agent")
     print("     Powered by Groq AI + PRISM + Kraken")
     print("=============================================")
