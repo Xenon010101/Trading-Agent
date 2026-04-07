@@ -58,9 +58,15 @@ class RiskManager:
         elif action == "SELL":
             if symbol in self.positions:
                 buy_price = self.positions[symbol]["buy_price"]
+                buy_amount = self.positions[symbol].get("amount", 0.001)
+                pnl_amount = (price - buy_price) * buy_amount
                 pnl_percent = ((price - buy_price) / buy_price) * 100
                 self.daily_pnl += pnl_percent
-                print(f"SELL recorded: {symbol} at ${price} | PnL: {pnl_percent:+.2f}%")
+                print(f"SELL recorded: {symbol}")
+                print(f"  Bought: ${buy_price:,.2f} x {buy_amount} BTC")
+                print(f"  Sold:   ${price:,.2f} x {buy_amount} BTC")
+                print(f"  Profit/Loss: ${pnl_amount:+.2f} ({pnl_percent:+.2f}%)")
+                print(f"  Daily P&L累计: {self.daily_pnl:+.2f}%")
                 del self.positions[symbol]
             else:
                 print(f"SELL recorded: {symbol} at ${price} (no open position)")

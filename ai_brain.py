@@ -1,15 +1,23 @@
 import groq
 import os
 import json
+import time
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+KEY_1 = os.getenv("GROQ_API_KEY")
+KEY_2 = os.getenv("GROQ_API_KEY_2")
+API_KEYS = [k for k in [KEY_1, KEY_2] if k]
+current_key_index = 0
 
 
-def get_groq_client():
-    """Lazy initialization of Groq client to avoid import-time errors"""
-    return groq.Groq(api_key=GROQ_API_KEY)
+def get_groq_client(key_index=None):
+    """Get Groq client with optional key rotation"""
+    if key_index is None:
+        key_index = current_key_index
+    return groq.Groq(api_key=API_KEYS[key_index % len(API_KEYS)])
 
 
 def analyze_market(market_data):
@@ -23,41 +31,60 @@ def analyze_market(market_data):
         Dict with action (BUY/SELL/HOLD), confidence (0-100), and reason
     """
     # Build comprehensive prompt with market data and trading rules
-    prompt = f"""You are an expert cryptocurrency trader. Analyze the following market data and make a trading decision.
+    prompt = f"""You are a conservative cryptocurrency trader using MULTI-CONFIRMATION strategy.
 
 Market Data:
 {json.dumps(market_data, indent=2)}
 
-Analyze these factors in order:
-1. Momentum score (positive = bullish, negative = bearish, zero = neutral)
-2. Trend direction (uptrend/downtrend/consolidation)
-3. MACD signal (bullish/bearish crossover)
-4. RSI level (below 30 = oversold = buy opportunity, above 70 = overbought = sell signal)
-5. Volatility level (high = more risk, low = safer)
-6. Overall signal strength
+=== SCORING SYSTEM (ALL THREE signals must agree) ===
 
-Momentum Guidelines:
-- High positive momentum (+1) = higher confidence for BUY
-- High negative momentum (-1) = higher confidence for SELL
-- Zero momentum = lean towards HOLD
+SIGNAL 1 - Trend Direction:
+- Uptrend = +1 point
+- Downtrend = -1 point
+- Consolidation = 0 points
 
-Strict Trading Rules:
-- STRONG BUY: RSI below 40 + MACD bullish + uptrend + positive momentum → confidence 80-90%
-- BUY: MACD bullish + uptrend + positive momentum → confidence 70-80%
-- BUY: MACD bullish + positive momentum (even in neutral trend) → confidence 60-70%
-- STRONG SELL: RSI above 70 + MACD bearish + negative momentum → confidence 80-90%
-- SELL: MACD bearish + downtrend + negative momentum → confidence 70-80%
-- HOLD: zero momentum + mixed signals → confidence 50-60%
+SIGNAL 2 - MACD:
+- Bullish crossover = +1 point
+- Bearish crossover = -1 point
+- Neutral = 0 points
 
-Requirements:
-- Always mention specific numbers from the data in your reason
-- Factor in momentum score when determining confidence
-- Be consistent - same data should give same decision
-- Be decisive - avoid sitting on the fence
-- Consider volatility - be more conservative in high volatility
+SIGNAL 3 - RSI:
+- Below 35 (strongly oversold) = +2 points
+- 35-45 (oversold) = +1 point
+- 45-55 (neutral) = 0 points
+- 55-65 (slightly overbought) = -1 point
+- Above 65 (overbought) = -2 points
 
-Respond ONLY in this exact JSON format:
-{{"action": "BUY", "confidence": 75, "reason": "explanation here"}}
+=== DECISION RULES ===
+
+CALCULATE YOUR SCORE:
+Total = Trend_points + MACD_points + RSI_points
+
+THEN DECIDE:
+- Score +3 = STRONG BUY (confidence 88%)
+- Score +2 = BUY (confidence 75%)
+- Score +1 = BUY (confidence 60%)
+- Score -1 = SELL (confidence 60%)
+- Score -2 = SELL (confidence 75%)
+- Score -3 = STRONG SELL (confidence 88%)
+- Score 0 = HOLD (confidence 50%)
+
+=== CRITICAL RULES ===
+
+1. Calculate the score EXPLICITLY in your reasoning
+2. Only BUY when score is +2 or higher
+3. Only SELL when score is -2 or lower
+4. HOLD everything else - protect capital above all
+5. NEVER force a trade when signals are unclear
+
+REQUIREMENTS:
+- Always mention the EXACT SCORE in your reason
+- Example: "Score +3: RSI 32 (oversold +2), MACD bullish (+1), uptrend (+1) = STRONG BUY"
+- Be conservative - when in doubt, HOLD
+- Use specific numbers from the data
+
+Respond ONLY in this exact JSON format (no extra text):
+{{"action": "STRONG BUY", "confidence": 87, "reason": "Score +3: RSI 30 (+2), MACD bullish (+1), uptrend (+1)"}}
 """
     
     try:
@@ -86,16 +113,72 @@ Respond ONLY in this exact JSON format:
         
         # Extract and parse the JSON
         json_str = raw_response[start_idx:end_idx]
-        return json.loads(json_str)
+        decision = json.loads(json_str)
+        
+        # Validate and enforce confidence rules based on action
+        action = decision.get("action", "HOLD")
+        reason = decision.get("reason", "")
+        
+        # Extract score from reason if present
+        score = 0
+        import re
+        score_match = re.search(r'[Ss]core\s*([+-]?\d+)', reason)
+        if score_match:
+            score = int(score_match.group(1))
+        
+        # Enforce confidence based on score/action
+        if "BUY" in action.upper() and "STRONG" not in action.upper():
+            if score == 1:
+                decision["confidence"] = 60
+            elif score == 2:
+                decision["confidence"] = 75
+        elif "STRONG BUY" in action.upper():
+            decision["confidence"] = 88
+        elif "SELL" in action.upper() and "STRONG" not in action.upper():
+            if score == -1:
+                decision["confidence"] = 60
+            elif score == -2:
+                decision["confidence"] = 75
+        elif "STRONG SELL" in action.upper():
+            decision["confidence"] = 88
+        else:
+            decision["confidence"] = 50
+        
+        return decision
     
     except Exception as e:
-        # Handle rate limit specifically
-        if "429" in str(e) or "rate_limit" in str(e).lower():
-            print(f"⚠️ Groq rate limit hit - pausing AI analysis")
-            return {"action": "HOLD", "confidence": 0, "reason": "Rate limit - waiting for reset"}
+        if "rate_limit" in str(e).lower() or "429" in str(e):
+            global current_key_index
+            if len(API_KEYS) > 1:
+                current_key_index = (current_key_index + 1) % len(API_KEYS)
+                print(f"  [RATE LIMIT] Switching to backup API key {current_key_index + 1}/{len(API_KEYS)}...")
+                try:
+                    client = get_groq_client(current_key_index)
+                    response = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {"role": "system", "content": "You are a conservative crypto trading expert."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.2,
+                        max_tokens=200
+                    )
+                    raw_response = response.choices[0].message.content
+                    start_idx = raw_response.find("{")
+                    end_idx = raw_response.rfind("}") + 1
+                    if start_idx != -1 and end_idx > 0:
+                        json_str = raw_response[start_idx:end_idx]
+                        return json.loads(json_str)
+                except:
+                    print("  [RATE LIMIT] All keys exhausted - waiting 30 seconds...")
+                    time.sleep(30)
+                    return {"action": "HOLD", "confidence": 0, "reason": "Rate limit - all keys exhausted"}
+            else:
+                print("  [RATE LIMIT] No backup key - waiting 30 seconds...")
+                time.sleep(30)
+                return {"action": "HOLD", "confidence": 0, "reason": "Rate limit - no backup key"}
         
-        # On any other error, default to HOLD
-        print(f"AI analysis error: {e}")
+        print(f"  AI analysis error: {e}")
         return {"action": "HOLD", "confidence": 0, "reason": "AI error"}
 
 

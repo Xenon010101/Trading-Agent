@@ -100,6 +100,8 @@ def check_exit_conditions(symbol, current_price):
     buy_price = risk.positions[symbol]["buy_price"]
     pnl_percent = ((current_price - buy_price) / buy_price) * 100
     
+    print(f"  {symbol} PnL check: bought ${buy_price:,.2f} current ${current_price:,.2f} = {pnl_percent:+.2f}%")
+    
     if pnl_percent >= TAKE_PROFIT_PERCENT:
         print(f"\n  [TP] TAKE PROFIT TRIGGERED for {symbol} — locking in {pnl_percent:.2f}% gain")
         return {"action": "SELL", "confidence": 95, "reason": f"Take profit target hit (+{pnl_percent:.2f}%)"}
@@ -128,6 +130,13 @@ def scan_coin(symbol):
     # Get current price
     current_price = data.get("price", {}).get("price")
     
+    # Step 1.5: If already holding this coin, skip AI buy analysis
+    if symbol in risk.positions:
+        print(f"  Already holding {symbol} - checking exit only")
+        if current_price:
+            check_exit_conditions(symbol, current_price)
+        return data
+    
     # Step 2: Check exit conditions BEFORE asking AI
     if current_price:
         exit_decision = check_exit_conditions(symbol, current_price)
@@ -135,7 +144,8 @@ def scan_coin(symbol):
             result = execute_trade(exit_decision["action"], symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
-                submit_trade_intent(exit_decision["action"], symbol)
+                if not PAPER_MODE:
+                    submit_trade_intent(exit_decision["action"], symbol)
                 log_decision(symbol, data, exit_decision, True)
             time.sleep(2)
             return data
@@ -155,8 +165,9 @@ def scan_coin(symbol):
             price = data.get("price", {}).get("price") if data.get("price") else None
             risk.record_trade(symbol, decision["action"], price, decision["confidence"])
             
-            # Submit trade intent to RiskRouter
-            submit_trade_intent(decision["action"], symbol)
+            # Submit trade intent to RiskRouter (skip in paper mode)
+            if not PAPER_MODE:
+                submit_trade_intent(decision["action"], symbol)
         
         # Step 6: Log the decision with execution status
         log_decision(symbol, data, decision, executed)
@@ -172,7 +183,7 @@ def scan_coin(symbol):
         reason=decision.get("reason", "No decision")
     )
     
-    time.sleep(15)  # Pause between coins to avoid Groq rate limits
+    time.sleep(30)  # Pause between coins to avoid Groq rate limits
     return data
 
 

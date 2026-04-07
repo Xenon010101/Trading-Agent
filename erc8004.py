@@ -2,9 +2,12 @@ from web3 import Web3
 import json
 import os
 import time
+import hashlib
 from dotenv import load_dotenv
 
 load_dotenv()
+
+AGENT_ID = os.getenv("AGENT_ID", "")
 
 AGENT_REGISTRY = "0x97b07dDc405B0c28B17559aFFE63BdB3632d0ca3"
 HACKATHON_VAULT = "0x0E7CD8ef9743FEcf94f9103033a044caBD45fC90"
@@ -238,7 +241,13 @@ def register_agent():
                 agent_data = registry.functions.getAgent(i).call()
                 if agent_data[1].lower() == agent_address.lower():
                     print(f"  Found! Agent ID: {i}")
+                    # Save to .env
+                    global AGENT_ID
+                    AGENT_ID = str(i)
                     save_to_env("AGENT_ID", str(i))
+                    # Call claim_allocation
+                    print("  Calling claim_allocation...")
+                    claim_allocation()
                     return i
             except:
                 continue
@@ -322,18 +331,14 @@ def register_agent():
 def claim_allocation():
     """Claim 0.05 ETH from HackathonVault"""
     operator_key = os.getenv("OPERATOR_PRIVATE_KEY", "")
-    agent_id = os.getenv("AGENT_ID", "")
+    agent_id = os.getenv("AGENT_ID", "33")
     
     if not operator_key:
         print("[ERR] OPERATOR_PRIVATE_KEY not set in .env")
         return None
     
-    if not agent_id:
-        print("[ERR] AGENT_ID not set. Run register_agent() first.")
-        return None
-    
     if not w3.is_connected():
-        print(f"[ERR] Cannot connect to Sepolia RPC")
+        print("[ERR] Cannot connect to Sepolia RPC")
         return None
     
     print(f"\n{'='*50}")
@@ -353,13 +358,15 @@ def claim_allocation():
             return balance
         
         # Build and send transaction
+        print(f"Claiming vault allocation for Agent ID {agent_id}...")
         nonce = w3.eth.get_transaction_count(operator_address)
+        gas_price = w3.eth.gas_price
         
         tx = vault.functions.claimAllocation(int(agent_id)).build_transaction({
             "from": operator_address,
             "nonce": nonce,
-            "gas": 100000,
-            "gasPrice": w3.eth.gas_price,
+            "gas": 300000,
+            "gasPrice": gas_price,
             "chainId": 11155111
         })
         
@@ -367,15 +374,18 @@ def claim_allocation():
         print("  Sending claim transaction...")
         
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        print(f"  TX Hash: {tx_hash.hex()}")
+        print("  Waiting for confirmation...")
+        
         receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
         
         if receipt["status"] == 1:
             balance = vault.functions.getBalance(int(agent_id)).call()
             eth_balance = w3.from_wei(balance, "ether")
-            print(f"  Allocated: {eth_balance} ETH")
+            print(f"  [SUCCESS] Allocated: {eth_balance} ETH")
             return balance
         else:
-            print("[ERR] Claim failed - transaction reverted")
+            print(f"[ERR] Claim failed - transaction reverted")
             return None
             
     except Exception as e:
@@ -383,8 +393,22 @@ def claim_allocation():
         return None
 
 
+def run_claim():
+    """Standalone function to claim vault allocation"""
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    status = get_network_status()
+    if not status["connected"]:
+        print(f"[ERR] Cannot connect to Sepolia RPC")
+        return
+    
+    print(f"\nConnected to Sepolia (Block: {status['block']})")
+    claim_allocation()
+
+
 def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
-    """Submit a trade intent to RiskRouter"""
+    """Submit a trade intent to RiskRouter with EIP-712 signature"""
     agent_key = os.getenv("AGENT_PRIVATE_KEY", "")
     agent_address = os.getenv("AGENT_ADDRESS", "")
     agent_id = os.getenv("AGENT_ID", "")
@@ -406,9 +430,10 @@ def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
         
         # Get nonce
         nonce = router.functions.getIntentNonce(int(agent_id)).call()
+        deadline = int(time.time()) + 300
         
-        # Build TradeIntent
-        intent = {
+        # Build TradeIntent as a proper EIP-712 typed data structure
+        intent_data = {
             "agentId": int(agent_id),
             "agentWallet": agent_address,
             "pair": pair,
@@ -416,10 +441,10 @@ def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
             "amountUsdScaled": amount_usd * 100,
             "maxSlippageBps": 100,
             "nonce": nonce,
-            "deadline": int(time.time()) + 300
+            "deadline": deadline
         }
         
-        # EIP-712 domain
+        # EIP-712 domain separator
         domain = {
             "name": "RiskRouter",
             "version": "1",
@@ -427,7 +452,7 @@ def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
             "verifyingContract": RISK_ROUTER
         }
         
-        # EIP-712 types
+        # EIP-712 message types (exclude EIP712Domain - library adds it automatically)
         types = {
             "TradeIntent": [
                 {"name": "agentId", "type": "uint256"},
@@ -441,22 +466,27 @@ def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
             ]
         }
         
-        # Sign EIP-712
-        from eth_account.messages import encode_typed_data
-        message = encode_typed_data(domain=domain, message=intent, types=types, primary_type="TradeIntent")
-        signed = w3.eth.account.sign_message(message, private_key=agent_key)
+        # Sign using eth_account's sign_typed_data
+        from eth_account import Account
+        
+        signed = Account.sign_typed_data(
+            private_key=agent_key,
+            domain_data=domain,
+            message_types=types,
+            message_data=intent_data
+        )
         
         # Submit to RiskRouter
         tx = router.functions.submitTradeIntent(
             (
-                intent["agentId"],
-                intent["agentWallet"],
-                intent["pair"],
-                intent["action"],
-                intent["amountUsdScaled"],
-                intent["maxSlippageBps"],
-                intent["nonce"],
-                intent["deadline"]
+                intent_data["agentId"],
+                intent_data["agentWallet"],
+                intent_data["pair"],
+                intent_data["action"],
+                intent_data["amountUsdScaled"],
+                intent_data["maxSlippageBps"],
+                intent_data["nonce"],
+                intent_data["deadline"]
             ),
             signed.signature.hex()
         ).build_transaction({
@@ -477,6 +507,8 @@ def submit_trade_intent(action, pair="XBTUSD", amount_usd=500):
         
     except Exception as e:
         print(f"[ERR] Trade intent error: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -495,6 +527,20 @@ def post_validation(agent_id, checkpoint_hash, score, notes):
     try:
         validation = w3.eth.contract(address=VALIDATION_REGISTRY, abi=VALIDATION_REGISTRY_ABI)
         operator_address = w3.eth.account.from_key(operator_key).address
+        
+        # Ensure checkpoint_hash is proper bytes32 format
+        if isinstance(checkpoint_hash, str):
+            # If it's a hex string, convert to bytes32
+            if checkpoint_hash.startswith("0x"):
+                checkpoint_hash = bytes.fromhex(checkpoint_hash[2:])
+            else:
+                checkpoint_hash = bytes.fromhex(checkpoint_hash)
+        
+        # Pad or truncate to 32 bytes
+        if len(checkpoint_hash) < 32:
+            checkpoint_hash = checkpoint_hash + b'\x00' * (32 - len(checkpoint_hash))
+        elif len(checkpoint_hash) > 32:
+            checkpoint_hash = checkpoint_hash[:32]
         
         tx = validation.functions.postEIP712Attestation(
             int(agent_id),
@@ -519,6 +565,8 @@ def post_validation(agent_id, checkpoint_hash, score, notes):
         
     except Exception as e:
         print(f"[ERR] Validation error: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -534,6 +582,8 @@ def get_network_status():
 
 def post_checkpoint(action, symbol, confidence, reason):
     """Record a trading checkpoint locally and optionally on-chain"""
+    from config import PAPER_MODE
+    
     checkpoint = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "action": action,
@@ -562,13 +612,15 @@ def post_checkpoint(action, symbol, confidence, reason):
     
     print(f"Checkpoint: [{action}] {symbol} @ {confidence}%")
     
-    # Post to ValidationRegistry on-chain if registered
+    # Post to ValidationRegistry on-chain if registered and not in paper mode
     agent_id = os.getenv("AGENT_ID", "")
-    if agent_id and agent_id != "unregistered":
+    if agent_id and agent_id != "unregistered" and not PAPER_MODE:
         try:
-            from web3 import Web3
-            checkpoint_hash = w3.keccak(text=f"{action}{symbol}{confidence}{reason}")
-            post_validation(agent_id, checkpoint_hash.hex(), confidence, reason)
+            # Create a deterministic checkpoint hash from checkpoint data
+            checkpoint_data = json.dumps(checkpoint, sort_keys=True)
+            checkpoint_hash = hashlib.sha256(checkpoint_data.encode()).digest()
+            
+            post_validation(agent_id, checkpoint_hash, min(int(confidence), 100), reason)
         except Exception as e:
             print(f"  (On-chain posting skipped: {e})")
 
@@ -634,4 +686,9 @@ if __name__ == "__main__":
         print("\n  ⚠️ Add OPERATOR_PRIVATE_KEY to .env to register")
     
     print("\n  Run: python agent.py")
+    
+    print("\n" + "-"*50)
+    print("  Claiming allocation...")
+    print("-"*50)
+    run_claim()
     print()

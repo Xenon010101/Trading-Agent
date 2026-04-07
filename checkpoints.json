@@ -525,5 +525,590 @@
     "reason": "Rate limit - waiting for reset",
     "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
     "agent_id": "unregistered"
+  },
+  {
+    "timestamp": "2026-04-07 22:52:53",
+    "action": "BUY",
+    "symbol": "BTC",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. Although the RSI level is 58, which is neutral, it's not overbought. The volatility level is low, which reduces the risk. Considering the MACD bullish signal, uptrend, and positive momentum, the confidence level is 75. This meets the BUY condition: MACD bullish + uptrend + positive momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:53:17",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:53:45",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:56:11",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:56:34",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:56:59",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:58:57",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:59:21",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 22:59:45",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 0,
+    "reason": "Rate limit - waiting for reset",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:03:33",
+    "action": "BUY",
+    "symbol": "BTC",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. The RSI level is 58, which is not overbought or oversold. The volatility level is low, which reduces the risk. Considering these factors, the conditions for a BUY signal are met, as we have a MACD bullish + uptrend + positive momentum. The confidence level is 75, which falls within the 70-80% range for this specific combination of signals.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:05:11",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 0,
+    "reason": "Rate limit - retry failed",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:13:09",
+    "action": "BUY",
+    "symbol": "BTC",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. Although the RSI level is 58, which is not in the oversold region, it's also not overbought. The volatility level is low, which reduces the risk. Considering the MACD bullish signal, uptrend, and positive momentum, the confidence level is 75, which falls under the 'BUY' category as it meets the criteria of MACD bullish + uptrend + positive momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:13:44",
+    "action": "BUY",
+    "symbol": "ETH",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish, both of which support a buy decision. The RSI level is 62, which is not overbought, and the volatility level is low, making the trade safer. With a positive momentum score, MACD bullish signal, and uptrend, the confidence level is 75, meeting the BUY criteria: MACD bullish + uptrend + positive momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:14:17",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 55,
+    "reason": "The momentum score is 0, indicating neutral momentum. The trend direction is consolidation, which is also neutral. The MACD signal is bearish, but the RSI level is 45, which is not oversold or overbought. The volatility level is low, which suggests a safer trade. Given the mixed signals and zero momentum, the confidence level is 55%, which falls under the HOLD category with mixed signals and zero momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:19:51",
+    "action": "BUY",
+    "symbol": "BTC",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. Although the RSI level is 58, which is neutral, it's not overbought. The volatility level is low, which reduces the risk. Considering the MACD bullish signal, uptrend, and positive momentum, the confidence level is 75. This meets the BUY condition: MACD bullish + uptrend + positive momentum.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:20:25",
+    "action": "BUY",
+    "symbol": "ETH",
+    "confidence": 75,
+    "reason": "The momentum score is 1, which is positive and indicates a bullish momentum. The trend direction is an uptrend, and the MACD signal is bullish. The RSI level is 62, which is not overbought, and the volatility level is low, indicating a safer trade. With a positive momentum score, bullish MACD, and uptrend, this meets the BUY criteria with a confidence of 70-80%. Given the specific numbers, such as the RSI level of 62 and the momentum score of 1, the confidence is adjusted to 75%.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:20:59",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 55,
+    "reason": "The momentum score is 0, indicating a neutral momentum. The trend direction is consolidation, which is also neutral. The MACD signal is bearish, but the RSI level is 45, which is not oversold or overbought. The volatility level is low, which suggests a safer trade. Considering these factors, the overall signal strength is not strong enough to make a buy or sell decision, so holding is the best option with a confidence of 55%.",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:27:03",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 52,
+    "reason": "Score +1: RSI 58 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:28:31",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 52,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:29:07",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 52,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:34:41",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 52,
+    "reason": "Score +1: RSI 58 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:35:19",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 52,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:35:54",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 52,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:36:55",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:37:29",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:38:04",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:43:38",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 + 1 - 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:44:12",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:44:48",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:50:21",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:50:55",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:51:29",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:55:06",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (0), MACD bullish (+1), uptrend (+1), but RSI is neutral and does not contribute to the score, while trend and MACD are not enough to reach a score of +2 or higher, so HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:55:41",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:56:16",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = 0 points",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:57:26",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 + 1 - 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:58:00",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-07 23:58:33",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:01:40",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:02:13",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score 0: RSI 62 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:02:46",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:08:21",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 - 1 + 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:08:57",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score 0: RSI 62 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:09:30",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:15:04",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:15:37",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score 0: RSI 62 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:16:10",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:21:45",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 - 1 + 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:22:18",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score -1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:22:51",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (0), MACD bearish (-1), consolidation (0) = 0 points",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:28:25",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:28:58",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score 0: RSI 62 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:29:33",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:35:06",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (0), MACD bullish (+1), uptrend (+1), but RSI is neutral and does not contribute to the score, so Trend (+1) and MACD (+1) are offset by nothing, resulting in a total score of +1 -1 = 0, since RSI is in the neutral range",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:35:40",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:36:14",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = 0 points",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:41:47",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 - 1 + 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:42:21",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:42:55",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = 0 points",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:48:28",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 - 1 + 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:49:02",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score 0: RSI 62 (-1), MACD bullish (+1), uptrend (+1) = 0",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:49:36",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (+0), MACD bearish (-1), consolidation (0) = 0 points",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:55:10",
+    "action": "HOLD",
+    "symbol": "BTC",
+    "confidence": 50,
+    "reason": "Score 0: RSI 58 (-1), MACD bullish (+1), uptrend (+1) = 1 + 1 - 1 = 1, but since score is not +2 or higher, HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:55:53",
+    "action": "HOLD",
+    "symbol": "ETH",
+    "confidence": 50,
+    "reason": "Score +1: RSI 62 (-1), MACD bullish (+1), uptrend (+1)",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
+  },
+  {
+    "timestamp": "2026-04-08 00:56:27",
+    "action": "HOLD",
+    "symbol": "SOL",
+    "confidence": 50,
+    "reason": "Score 0: RSI 45 (neutral 0), MACD bearish (-1), consolidation (0) = HOLD",
+    "agent": "0xF7C5fA025b2CF3a943723B087871cA49E92AbA72",
+    "agent_id": "33"
   }
 ]
