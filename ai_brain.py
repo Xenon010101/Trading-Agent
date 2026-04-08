@@ -49,11 +49,11 @@ SIGNAL 2 - MACD:
 - Neutral = 0
 
 SIGNAL 3 - RSI:
-- RSI < 35 (oversold) = +2
-- RSI 35-45 = +1
-- RSI 45-55 = 0
-- RSI 55-65 = -1
-- RSI > 65 (overbought) = -2
+- RSI < 35 (strongly oversold) = +2
+- RSI 35-50 = +1
+- RSI 50-60 = 0 (neutral - normal in bull market)
+- RSI 60-70 = -1 (slightly overbought)
+- RSI > 70 (overbought) = -2
 
 SIGNAL 4 - VOLUME:
 - High volume = +1
