@@ -1,10 +1,10 @@
 import requests
 import os
 import json
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
-PRISM_API_KEY = os.getenv("PRISM_API_KEY")
 
 # Symbol to CoinGecko ID mapping
 COINGECKO_MAP = {
@@ -13,158 +13,229 @@ COINGECKO_MAP = {
     "SOL": "solana"
 }
 
-# Fallback mock data when all APIs are unavailable
-MOCK_DATA = {
-    "BTC": {
-        "price": {"price": 67450.00, "change_24h": 2.3, "volume": 28500000000},
-        "signals": {"rsi": 58, "macd": "bullish", "trend": "uptrend", "signal": "neutral"}
-    },
-    "ETH": {
-        "price": {"price": 3520.00, "change_24h": 1.8, "volume": 15200000000},
-        "signals": {"rsi": 62, "macd": "bullish", "trend": "uptrend", "signal": "bullish"}
-    },
-    "SOL": {
-        "price": {"price": 178.50, "change_24h": -0.5, "volume": 3200000000},
-        "signals": {"rsi": 45, "macd": "bearish", "trend": "consolidation", "signal": "neutral"}
-    }
-}
+# Rate limiting
+_last_request_time = 0
+REQUEST_INTERVAL = 1.5  # seconds between requests
 
 
-def get_price(symbol):
-    headers = {"X-API-Key": PRISM_API_KEY, "Content-Type": "application/json"}
-    
-    # Try PRISM API first
-    url = f"https://api.prismapi.ai/v1/crypto/{symbol}/quote"
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            return response.json()
-    except:
-        pass
-    
-    # Fallback to CoinGecko
+def _rate_limit():
+    """Enforce rate limiting between API calls"""
+    global _last_request_time
+    elapsed = time.time() - _last_request_time
+    if elapsed < REQUEST_INTERVAL:
+        time.sleep(REQUEST_INTERVAL - elapsed)
+    _last_request_time = time.time()
+
+
+def get_price_history(symbol, days=7):
+    """Get OHLC price history from CoinGecko"""
     coin_id = COINGECKO_MAP.get(symbol)
-    if coin_id:
-        cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-        try:
-            response = requests.get(cg_url, timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                print(f"[DEBUG] CoinGecko raw response for {symbol}: {data}")
-                price = data.get(coin_id, {}).get("usd", 0)
-                
-                # Sanity check - ETH should not be > $10,000
-                if symbol == "ETH" and price > 10000:
-                    print(f"[WARN] ETH price {price} seems wrong, using mock data")
-                    return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})
-                
-                # BTC should not be > $1,000,000
-                if symbol == "BTC" and price > 1000000:
-                    print(f"[WARN] BTC price {price} seems wrong, using mock data")
-                    return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})
-                
-                return {"price": price}
-        except Exception as e:
-            print(f"[DEBUG] CoinGecko error: {e}")
+    if not coin_id:
+        return []
     
-    # Last resort: mock data
-    return MOCK_DATA.get(symbol, {}).get("price", {"price": 0})
-
-
-def get_signals(symbol):
-    headers = {"X-API-Key": PRISM_API_KEY, "Content-Type": "application/json"}
+    _rate_limit()
     
-    url = f"https://api.prismapi.ai/v1/signals/{symbol}"
+    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/ohlc?vs_currency=usd&days={days}"
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, timeout=15)
+        if response.status_code == 429:
+            print(f"[WARN] CoinGecko rate limited on OHLC - waiting...")
+            time.sleep(30)
+            return []
+        
         if response.status_code == 200:
-            return response.json()
-    except:
-        pass
+            ohlc_data = response.json()
+            print(f"[DEBUG] OHLC for {symbol}: {len(ohlc_data)} candles")
+            closes = [candle[4] for candle in ohlc_data]
+            return closes
+    except Exception as e:
+        print(f"[DEBUG] OHLC error: {e}")
+    return []
+
+
+def calculate_rsi(prices, period=14):
+    """Calculate RSI from price list"""
+    if len(prices) < period + 1:
+        return 50  # Default neutral RSI if not enough data
     
-    return MOCK_DATA.get(symbol, {}).get("signals", {"signal": "neutral"})
+    # Calculate price changes
+    deltas = []
+    for i in range(1, len(prices)):
+        deltas.append(prices[i] - prices[i-1])
+    
+    # Separate gains and losses
+    gains = [d if d > 0 else 0 for d in deltas[-period:]]
+    losses = [-d if d < 0 else 0 for d in deltas[-period:]]
+    
+    # Calculate averages
+    avg_gain = sum(gains) / period if gains else 0
+    avg_loss = sum(losses) / period if losses else 0
+    
+    # Calculate RS and RSI
+    if avg_loss == 0:
+        return 100
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    return round(rsi, 1)
+
+
+def calculate_macd(prices):
+    """Calculate MACD from price list"""
+    if len(prices) < 26:
+        return "neutral"
+    
+    # Calculate EMAs
+    def ema(prices, period):
+        multiplier = 2 / (period + 1)
+        ema_value = prices[0]
+        for price in prices[1:]:
+            ema_value = (price * multiplier) + (ema_value * (1 - multiplier))
+        return ema_value
+    
+    ema_12 = ema(prices, 12)
+    ema_26 = ema(prices, 26)
+    
+    macd_line = ema_12 - ema_26
+    
+    if macd_line > 0:
+        return "bullish"
+    elif macd_line < 0:
+        return "bearish"
+    else:
+        return "neutral"
+
+
+def calculate_trend(prices):
+    """Calculate trend from price list"""
+    if len(prices) < 10:
+        return "consolidation"
+    
+    # Compare recent 3 vs previous 7
+    recent_avg = sum(prices[-3:]) / 3
+    older_avg = sum(prices[-10:-3]) / 7
+    
+    if older_avg == 0:
+        return "consolidation"
+    
+    change_pct = ((recent_avg - older_avg) / older_avg) * 100
+    
+    if change_pct > 0.5:
+        return "uptrend"
+    elif change_pct < -0.5:
+        return "downtrend"
+    else:
+        return "consolidation"
+
+
+def get_current_price(symbol):
+    """Get current price from CoinGecko"""
+    coin_id = COINGECKO_MAP.get(symbol)
+    if not coin_id:
+        return None, None
+    
+    _rate_limit()
+    
+    price_url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd&include_24hr_change=true"
+    try:
+        response = requests.get(price_url, timeout=15)
+        
+        if response.status_code == 429:
+            print(f"[WARN] CoinGecko rate limited - waiting 30s...")
+            time.sleep(30)
+            return None, None
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"[DEBUG] CoinGecko for {symbol}: {data}")
+            price_info = data.get(coin_id, {})
+            price = price_info.get("usd")
+            change_24h = price_info.get("usd_24h_change", 0)
+            
+            if price is None or price == 0:
+                return None, None
+            
+            return {"price": price, "change_24h": change_24h}, price
+    except Exception as e:
+        print(f"[DEBUG] CoinGecko error: {e}")
+    
+    return None, None
 
 
 def get_market_summary(symbol):
-    price_data = get_price(symbol)
-    signals_data = get_signals(symbol)
+    """Get market summary with real calculated signals"""
+    # Get current price
+    price_data, current_price = get_current_price(symbol)
     
-    return {
-        "symbol": symbol,
-        "price": price_data,
-        "signals": signals_data
-    }
-
-
-def get_market_summary_advanced(symbol):
-    """Enhanced market data with momentum and volatility analysis"""
-    price_data = get_price(symbol)
-    signals_data = get_signals(symbol)
+    if price_data is None:
+        return None
     
-    # Calculate momentum score
-    signal_text = signals_data.get("signal", "neutral").lower()
-    momentum = 0
-    if "bullish" in signal_text or "buy" in signal_text:
-        momentum = 1
-    elif "bearish" in signal_text or "sell" in signal_text:
-        momentum = -1
+    # Get price history for signal calculation
+    prices = get_price_history(symbol, days=7)
     
-    # Check individual indicators for momentum
-    macd = signals_data.get("macd", "").lower()
-    trend = signals_data.get("trend", "").lower()
-    rsi = signals_data.get("rsi", 50)
+    if not prices:
+        # No history - use neutral signals
+        return {
+            "symbol": symbol,
+            "price": price_data,
+            "signals": {
+                "rsi": 50,
+                "macd": "neutral",
+                "trend": "consolidation",
+                "signal": "neutral"
+            }
+        }
     
-    if "bullish" in macd:
-        momentum += 0.5
-    elif "bearish" in macd:
-        momentum -= 0.5
+    # Calculate real signals
+    rsi = calculate_rsi(prices)
+    macd = calculate_macd(prices)
+    trend = calculate_trend(prices)
     
-    if "uptrend" in trend:
-        momentum += 0.5
-    elif "downtrend" in trend:
-        momentum -= 0.5
-    
-    # RSI momentum contribution
+    # Determine overall signal
+    signal_score = 0
     if rsi < 40:
-        momentum += 0.5  # Oversold = bullish
+        signal_score += 1
     elif rsi > 60:
-        momentum -= 0.5  # Overbought = bearish
+        signal_score -= 1
     
-    # Normalize momentum to -1, 0, or +1
-    if momentum > 0.5:
-        momentum = 1
-    elif momentum < -0.5:
-        momentum = -1
+    if macd == "bullish":
+        signal_score += 1
+    elif macd == "bearish":
+        signal_score -= 1
+    
+    if trend == "uptrend":
+        signal_score += 1
+    elif trend == "downtrend":
+        signal_score -= 1
+    
+    if signal_score >= 2:
+        signal = "bullish"
+    elif signal_score <= -2:
+        signal = "bearish"
     else:
-        momentum = 0
+        signal = "neutral"
     
-    # Volatility estimate based on change_24h
-    change_24h = price_data.get("change_24h", 0)
-    volume = price_data.get("volume", 0)
-    
-    # High volume + large price change = high volatility
-    volatility = "low"
-    if abs(change_24h) > 5 or volume > 10000000000:
-        volatility = "high"
-    elif abs(change_24h) > 2 or volume > 5000000000:
-        volatility = "medium"
+    print(f"[DEBUG] {symbol} signals: RSI={rsi}, MACD={macd}, Trend={trend}, Signal={signal}")
     
     return {
         "symbol": symbol,
         "price": price_data,
-        "signals": signals_data,
-        "momentum": momentum,
-        "volatility": volatility,
-        "analysis": {
-            "momentum_score": momentum,
-            "volatility_level": volatility,
-            "short_term": signals_data.get("signal", "neutral"),
-            "timeframe": "multi-timeframe"
+        "signals": {
+            "rsi": rsi,
+            "macd": macd,
+            "trend": trend,
+            "signal": signal,
+            "momentum": signal_score
         }
     }
 
 
+def get_market_summary_advanced(symbol):
+    """Same as get_market_summary - unified function"""
+    return get_market_summary(symbol)
+
+
 if __name__ == "__main__":
     for sym in ["BTC", "ETH", "SOL"]:
-        data = get_market_summary_advanced(sym)
+        data = get_market_summary(sym)
         print(f"{sym}: {json.dumps(data, indent=2)}\n")

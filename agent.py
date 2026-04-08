@@ -4,7 +4,7 @@ from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
-from erc8004 import create_agent_wallet, post_checkpoint, get_checkpoint_summary, register_agent, claim_allocation, submit_trade_intent
+from erc8004 import setup_agent, post_checkpoint, submit_trade_intent
 from datetime import date
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
@@ -33,7 +33,6 @@ def handle_exit(sig, frame):
     print("\n\n" + "=" * 50)
     print("   Shutting down agent...")
     print("=" * 50 + "\n")
-    get_checkpoint_summary()
     generate_daily_report()
     print_session_summary()
     sys.exit(0)
@@ -74,22 +73,9 @@ def print_config():
 
 
 def setup_agent():
-    """Register agent on blockchain and claim allocation"""
-    agent_id = os.getenv("AGENT_ID", "")
-    
-    if not agent_id:
-        print("\n  Setting up ERC-8004 agent...")
-        try:
-            agent_id = register_agent()
-            if agent_id:
-                claim_allocation()
-            else:
-                print("  [!] Registration failed - running without on-chain features")
-        except Exception as e:
-            print(f"  [!] On-chain setup failed: {e}")
-            print("  [!] Running in offline mode")
-    
-    print(f"  ERC-8004 Checkpoints : ACTIVE (ID: {agent_id or 'N/A'})")
+    """Setup ERC-8004 agent"""
+    from erc8004 import setup_agent
+    setup_agent()
 
 
 def check_exit_conditions(symbol, current_price):
@@ -97,93 +83,93 @@ def check_exit_conditions(symbol, current_price):
     if symbol not in risk.positions:
         return None
     
+    if current_price is None or current_price == 0:
+        return None
+    
     buy_price = risk.positions[symbol]["buy_price"]
-    pnl_percent = ((current_price - buy_price) / buy_price) * 100
+    if buy_price is None or buy_price == 0:
+        return None
     
-    print(f"  {symbol} PnL check: bought ${buy_price:,.2f} current ${current_price:,.2f} = {pnl_percent:+.2f}%")
+    pnl = ((current_price - buy_price) / buy_price) * 100
+    print(f"  {symbol} PnL: {pnl:.2f}%")
     
-    if pnl_percent >= TAKE_PROFIT_PERCENT:
-        print(f"\n  [TP] TAKE PROFIT TRIGGERED for {symbol} — locking in {pnl_percent:.2f}% gain")
-        return {"action": "SELL", "confidence": 95, "reason": f"Take profit target hit (+{pnl_percent:.2f}%)"}
+    if pnl >= TAKE_PROFIT_PERCENT:
+        print(f"  [TP] TAKE PROFIT: {symbol} +{pnl:.2f}%")
+        return {"action": "SELL", "confidence": 95, "reason": f"TP hit +{pnl:.2f}%"}
     
-    if pnl_percent <= -STOP_LOSS_PERCENT:
-        print(f"\n  [SL] STOP LOSS TRIGGERED for {symbol} — selling at loss of {abs(pnl_percent):.2f}%")
-        return {"action": "SELL", "confidence": 95, "reason": f"Stop loss triggered ({pnl_percent:.2f}%)"}
+    if pnl <= -STOP_LOSS_PERCENT:
+        print(f"  [SL] STOP LOSS: {symbol} {pnl:.2f}%")
+        return {"action": "SELL", "confidence": 95, "reason": f"SL hit {pnl:.2f}%"}
     
     return None
 
 
 def scan_coin(symbol):
     """Analyze a single coin and execute if conditions are met"""
-    # Check circuit breaker first
     if risk.check_circuit_breaker():
         print(f"   [CIRCUIT BREAKER ACTIVE] Skipping {symbol}")
         return None
     
-    # Step 1: Fetch market data from PRISM API
     data = get_market_summary(symbol)
     
-    if data is None:
+    if data is None or data.get("price") is None:
         print(f"   [!] Skipping {symbol} - no data received")
         return None
     
-    # Get current price
     current_price = data.get("price", {}).get("price")
     
-    # Step 1.5: If already holding this coin, skip AI buy analysis
-    if symbol in risk.positions:
-        print(f"  Already holding {symbol} - checking exit only")
-        if current_price:
-            check_exit_conditions(symbol, current_price)
-        return data
+    if not current_price or current_price == 0:
+        print(f"   [SKIP] No price data for {symbol}")
+        return None
     
-    # Step 2: Check exit conditions BEFORE asking AI
-    if current_price:
+    # Prevent duplicate buys - if holding, check exits only
+    if symbol in risk.positions:
+        print(f"  Already holding {symbol} - checking exit")
         exit_decision = check_exit_conditions(symbol, current_price)
         if exit_decision and risk.can_trade(exit_decision):
-            result = execute_trade(exit_decision["action"], symbol)
+            result = execute_trade("SELL", symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
-                if not PAPER_MODE:
-                    submit_trade_intent(exit_decision["action"], symbol)
-                log_decision(symbol, data, exit_decision, True)
-            time.sleep(2)
-            return data
+                print(f"  Submitting trade intent to blockchain...")
+                submit_trade_intent("SELL", symbol)
+                time.sleep(3)
+                post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
+        return data
     
-    # Step 3: Get AI decision from LLaMA 70B
+    # Check exits first
+    exit_decision = check_exit_conditions(symbol, current_price)
+    if exit_decision and risk.can_trade(exit_decision):
+        result = execute_trade("SELL", symbol)
+        if result is not None:
+            risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
+            print(f"  Submitting trade intent to blockchain...")
+            submit_trade_intent("SELL", symbol)
+            time.sleep(3)
+            post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
+        return data
+    
+    # Get AI decision
     decision = analyze_market(data)
     
-    # Step 4: Check if trade is allowed by risk manager
-    if risk.can_trade(decision):
-        # Step 5: Execute the trade (or simulate in paper mode)
-        executed = False
+    if risk.can_trade(decision) and decision["action"] in ["BUY", "SELL"]:
         result = execute_trade(decision["action"], symbol)
         
         if result is not None:
-            executed = True
-            # Extract price from market data for logging
-            price = data.get("price", {}).get("price") if data.get("price") else None
+            price = data.get("price", {}).get("price")
             risk.record_trade(symbol, decision["action"], price, decision["confidence"])
             
-            # Submit trade intent to RiskRouter (skip in paper mode)
-            if not PAPER_MODE:
-                submit_trade_intent(decision["action"], symbol)
-        
-        # Step 6: Log the decision with execution status
-        log_decision(symbol, data, decision, executed)
+            print(f"  Submitting trade intent to blockchain...")
+            submit_trade_intent(decision["action"], symbol)
+            time.sleep(3)
+            post_checkpoint(decision["action"], symbol, decision["confidence"], decision["reason"])
+            
+            log_decision(symbol, data, decision, True)
+        else:
+            log_decision(symbol, data, decision, False)
     else:
-        # Decision blocked by risk manager - still log it
         log_decision(symbol, data, decision, False)
     
-    # Record checkpoint on ERC-8004
-    post_checkpoint(
-        action=decision.get("action", "HOLD"),
-        symbol=symbol,
-        confidence=decision.get("confidence", 0),
-        reason=decision.get("reason", "No decision")
-    )
-    
-    time.sleep(30)  # Pause between coins to avoid Groq rate limits
+    time.sleep(30)  # Delay between coins
     return data
 
 
@@ -209,7 +195,6 @@ def main():
         verify_kraken_connection()
     
     # Setup ERC-8004 blockchain integration
-    create_agent_wallet()
     setup_agent()
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
