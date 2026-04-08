@@ -746,3 +746,5 @@
 {"timestamp": "2026-04-09 00:06:01", "symbol": "BTC", "price": 71515, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1, Volume 0 (assumed normal/low due to lack of data)", "executed": false}
 {"timestamp": "2026-04-09 00:06:34", "symbol": "ETH", "price": 2218.33, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1, Volume 0 (assumed normal/low due to lack of data)", "executed": false}
 {"timestamp": "2026-04-09 00:07:08", "symbol": "SOL", "price": 83.41, "action": "HOLD", "confidence": 50, "reason": "Score +1: Trend +1, MACD +1, RSI 0 (neutral), Volume 0 (no data)", "executed": false}
+{"timestamp": "2026-04-09 00:13:05", "symbol": "BTC", "price": 71431, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1, Volume 0 (no volume data)", "executed": false}
+{"timestamp": "2026-04-09 00:13:39", "symbol": "ETH", "price": 2211.37, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1, Volume 0 (assumed normal/low due to lack of data)", "executed": false}

@@ -112,25 +112,31 @@ Output ONLY the JSON, nothing else.
         if score_match:
             score = int(score_match.group(1))
         
-        # Enforce confidence based on score - ONLY trade with high confidence
+        # Enforce confidence based on score
         if score >= 3:
             decision["action"] = "BUY"
             decision["confidence"] = 85
         elif score == 2:
             decision["action"] = "BUY"
             decision["confidence"] = 75
+        elif score == 1:
+            decision["action"] = "BUY"
+            decision["confidence"] = 65
         elif score <= -3:
             decision["action"] = "SELL"
             decision["confidence"] = 85
         elif score == -2:
             decision["action"] = "SELL"
             decision["confidence"] = 75
+        elif score == -1:
+            decision["action"] = "SELL"
+            decision["confidence"] = 65
         else:
             decision["action"] = "HOLD"
             decision["confidence"] = 50
         
-        # Only trade if confidence >= 75
-        if decision["confidence"] < 75:
+        # Only trade if confidence >= 60 (MIN_CONFIDENCE)
+        if decision["confidence"] < 60:
             print(f"  [HOLD] Skipping trade - low confidence ({decision['confidence']}%)")
             decision["action"] = "HOLD"
         
@@ -169,17 +175,23 @@ Output ONLY the JSON, nothing else.
                         elif score == 2:
                             decision["action"] = "BUY"
                             decision["confidence"] = 75
+                        elif score == 1:
+                            decision["action"] = "BUY"
+                            decision["confidence"] = 65
                         elif score <= -3:
                             decision["action"] = "SELL"
                             decision["confidence"] = 85
                         elif score == -2:
                             decision["action"] = "SELL"
                             decision["confidence"] = 75
+                        elif score == -1:
+                            decision["action"] = "SELL"
+                            decision["confidence"] = 65
                         else:
                             decision["action"] = "HOLD"
                             decision["confidence"] = 50
                         
-                        if decision["confidence"] < 75:
+                        if decision["confidence"] < 60:
                             decision["action"] = "HOLD"
                         
                         return decision
