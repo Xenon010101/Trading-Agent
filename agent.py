@@ -4,7 +4,7 @@ from risk_manager import RiskManager
 from logger import log_decision, print_banner, print_session_summary
 from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
-from erc8004 import setup_agent, post_checkpoint, submit_trade_intent
+from erc8004 import setup_agent, post_checkpoint, submit_trade_intent, post_reputation
 from datetime import date
 from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
 import time
@@ -129,6 +129,7 @@ def scan_coin(symbol):
                 submit_trade_intent("SELL", symbol)
                 time.sleep(3)
                 post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
+                post_reputation(exit_decision["confidence"])
         return data
     
     # Check exits first
@@ -142,6 +143,7 @@ def scan_coin(symbol):
             submit_trade_intent("SELL", symbol)
             time.sleep(3)
             post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
+            post_reputation(exit_decision["confidence"])
         return data
     
     # Get AI decision
@@ -164,11 +166,14 @@ def scan_coin(symbol):
                 submit_trade_intent(action, symbol)
                 time.sleep(3)
                 post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
+                post_reputation(decision["confidence"])
                 
                 log_decision(symbol, data, decision, True)
             else:
                 log_decision(symbol, data, decision, False)
+                post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
         else:
+            post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
             log_decision(symbol, data, decision, False)
     else:
         log_decision(symbol, data, decision, False)
@@ -200,6 +205,7 @@ def main():
     
     # Setup ERC-8004 blockchain integration
     setup_agent()
+    post_reputation(90)
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     
