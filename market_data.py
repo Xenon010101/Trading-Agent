@@ -45,11 +45,10 @@ def get_price_history(symbol, days=7):
         
         if response.status_code == 200:
             ohlc_data = response.json()
-            print(f"[DEBUG] OHLC for {symbol}: {len(ohlc_data)} candles")
             closes = [candle[4] for candle in ohlc_data]
             return closes
-    except Exception as e:
-        print(f"[DEBUG] OHLC error: {e}")
+    except Exception:
+        pass
     return []
 
 
@@ -147,7 +146,6 @@ def get_current_price(symbol):
         
         if response.status_code == 200:
             data = response.json()
-            print(f"[DEBUG] CoinGecko for {symbol}: {data}")
             price_info = data.get(coin_id, {})
             price = price_info.get("usd")
             change_24h = price_info.get("usd_24h_change", 0)
@@ -156,8 +154,8 @@ def get_current_price(symbol):
                 return None, None
             
             return {"price": price, "change_24h": change_24h}, price
-    except Exception as e:
-        print(f"[DEBUG] CoinGecko error: {e}")
+    except Exception:
+        pass
     
     return None, None
 
@@ -214,8 +212,6 @@ def get_market_summary(symbol):
         signal = "bearish"
     else:
         signal = "neutral"
-    
-    print(f"[DEBUG] {symbol} signals: RSI={rsi}, MACD={macd}, Trend={trend}, Signal={signal}")
     
     return {
         "symbol": symbol,

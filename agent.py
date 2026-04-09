@@ -130,6 +130,7 @@ def scan_coin(symbol):
             result = execute_trade("SELL", symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
+                log_decision(symbol, data, exit_decision, True)
                 print(f"  Submitting trade intent to blockchain...")
                 submit_trade_intent("SELL", symbol)
                 time.sleep(3)
@@ -142,6 +143,7 @@ def scan_coin(symbol):
         result = execute_trade("SELL", symbol)
         if result is not None:
             risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
+            log_decision(symbol, data, exit_decision, True)
             print(f"  Submitting trade intent to blockchain...")
             submit_trade_intent("SELL", symbol)
             time.sleep(3)
@@ -151,19 +153,27 @@ def scan_coin(symbol):
     # Get AI decision
     decision = analyze_market(data)
     
-    if risk.can_trade(decision) and decision["action"] in ["BUY", "SELL"]:
-        result = execute_trade(decision["action"], symbol)
+    if risk.can_trade(decision):
+        action = decision["action"]
         
-        if result is not None:
-            price = data.get("price", {}).get("price")
-            risk.record_trade(symbol, decision["action"], price, decision["confidence"])
+        # Never SELL if not holding position
+        if action == "SELL" and symbol not in risk.positions:
+            print(f"  [SKIP] No open position in {symbol} - skipping sell")
+        elif action in ["BUY", "SELL"]:
+            result = execute_trade(action, symbol)
             
-            print(f"  Submitting trade intent to blockchain...")
-            submit_trade_intent(decision["action"], symbol)
-            time.sleep(3)
-            post_checkpoint(decision["action"], symbol, decision["confidence"], decision["reason"])
-            
-            log_decision(symbol, data, decision, True)
+            if result is not None:
+                price = data.get("price", {}).get("price")
+                risk.record_trade(symbol, action, price, decision["confidence"])
+                
+                print(f"  Submitting trade intent to blockchain...")
+                submit_trade_intent(action, symbol)
+                time.sleep(3)
+                post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
+                
+                log_decision(symbol, data, decision, True)
+            else:
+                log_decision(symbol, data, decision, False)
         else:
             log_decision(symbol, data, decision, False)
     else:

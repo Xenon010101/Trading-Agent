@@ -192,16 +192,15 @@ def submit_trade_intent(action, symbol):
         # Get nonce ONCE
         tx_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
         
-        # Submit transaction with higher gas to clear pending queue
+        # Submit transaction with reduced gas
         tx = router.functions.submitTradeIntent(
             intent,
             signed.signature
         ).build_transaction({
             "from": wallet_address,
             "nonce": tx_nonce,
-            "gas": 200000,
-            "maxFeePerGas": w3.to_wei(50, "gwei"),
-            "maxPriorityFeePerGas": w3.to_wei(5, "gwei"),
+            "gas": 150000,
+            "gasPrice": w3.eth.gas_price,
         })
         
         signed_tx = w3.eth.account.sign_transaction(

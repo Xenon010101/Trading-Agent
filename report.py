@@ -35,6 +35,7 @@ def generate_daily_report():
     holds = sum(1 for t in today_trades if t.get("action") == "HOLD")
     
     win_count = 0
+    total_completed_pairs = 0
     best_trade = None
     worst_trade = None
     best_pnl = float('-inf')
@@ -42,54 +43,59 @@ def generate_daily_report():
     total_pnl = 0.0
     
     coin_stats = {}
+    pending_buys = {}
     
     for trade in today_trades:
         symbol = trade.get("symbol", "UNKNOWN")
+        action = trade.get("action")
+        price = trade.get("price", 0)
         
-        if trade.get("action") == "SELL":
-            price = trade.get("price", 0)
-            if price > 0:
-                pnl = 0
-                if symbol in coin_stats and coin_stats[symbol].get("buy_price"):
-                    pnl = ((price - coin_stats[symbol]["buy_price"]) / coin_stats[symbol]["buy_price"]) * 100
-                    total_pnl += pnl
-                    if pnl > 0:
-                        win_count += 1
-                    if pnl > best_pnl:
-                        best_pnl = pnl
-                        best_trade = symbol
-                    if pnl < worst_pnl:
-                        worst_pnl = pnl
-                        worst_trade = symbol
-        elif trade.get("action") == "BUY":
-            price = trade.get("price", 0)
-            coin_stats[symbol] = {"buy_price": price, "count": coin_stats.get(symbol, {}).get("count", 0) + 1}
-        
-        coin_stats[symbol] = {"count": coin_stats.get(symbol, {}).get("count", 0) + 1}
+        if action == "BUY":
+            pending_buys[symbol] = price
+            coin_stats[symbol] = {"count": coin_stats.get(symbol, {}).get("count", 0) + 1}
+        elif action == "SELL":
+            if symbol in pending_buys:
+                buy_price = pending_buys[symbol]
+                del pending_buys[symbol]
+                total_completed_pairs += 1
+                
+                pnl = ((price - buy_price) / buy_price) * 100
+                total_pnl += pnl
+                
+                if price > buy_price:
+                    win_count += 1
+                
+                if pnl > best_pnl:
+                    best_pnl = pnl
+                    best_trade = symbol
+                if pnl < worst_pnl:
+                    worst_pnl = pnl
+                    worst_trade = symbol
     
     most_traded = max(coin_stats.items(), key=lambda x: x[1]["count"])[0] if coin_stats else "N/A"
-    win_rate = (win_count / sells * 100) if sells > 0 else 0
+    win_rate = (win_count / total_completed_pairs * 100) if total_completed_pairs > 0 else 0
     
     report_lines = [
-        "╔════════════════════════════════════════╗",
-        "║         DAILY TRADING REPORT           ║",
-        f"║         Date: {today}                ║",
-        "╠════════════════════════════════════════╣",
-        f"║  Total Trades    : {str(total_trades):<17} ║",
-        f"║  BUY Orders     : {str(buys):<17} ║",
-        f"║  SELL Orders    : {str(sells):<17} ║",
-        f"║  HOLD Decisions : {str(holds):<17} ║",
-        f"║  Win Rate       : {f'{win_rate:.1f}%':<17} ║",
-        f"║  Daily PnL      : {f'{total_pnl:+.2f}%':<17} ║",
+        "+--------------------------------------------+",
+        "|         DAILY TRADING REPORT               |",
+        f"|         Date: {today}                |",
+        "+--------------------------------------------+",
+        f"|  Total Trades    : {str(total_trades):<17} |",
+        f"|  BUY Orders      : {str(buys):<17} |",
+        f"|  SELL Orders     : {str(sells):<17} |",
+        f"|  HOLD Decisions  : {str(holds):<17} |",
+        f"|  Completed Pairs : {str(total_completed_pairs):<17} |",
+        f"|  Win Rate        : {f'{win_rate:.1f}%':<17} |",
+        f"|  Daily PnL       : {f'{total_pnl:+.2f}%':<17} |",
     ]
     
     if best_trade:
-        report_lines.append(f"║  Best Trade     : {f'{best_trade} {best_pnl:+.2f}%':<24} ║")
+        report_lines.append(f"|  Best Trade      : {f'{best_trade} {best_pnl:+.2f}%':<21} |")
     if worst_trade and worst_pnl < 0:
-        report_lines.append(f"║  Worst Trade    : {f'{worst_trade} {worst_pnl:.2f}%':<24} ║")
+        report_lines.append(f"|  Worst Trade     : {f'{worst_trade} {worst_pnl:.2f}%':<21} |")
     
-    report_lines.append(f"║  Most Traded    : {most_traded:<17} ║")
-    report_lines.append("╚════════════════════════════════════════╝")
+    report_lines.append(f"|  Most Traded     : {most_traded:<17} |")
+    report_lines.append("+--------------------------------------------+")
     
     report_text = "\n".join(report_lines)
     print(f"\n{report_text}\n")
@@ -101,6 +107,7 @@ def generate_daily_report():
         f.write(f"BUY Orders: {buys}\n")
         f.write(f"SELL Orders: {sells}\n")
         f.write(f"HOLD Decisions: {holds}\n")
+        f.write(f"Completed Pairs: {total_completed_pairs}\n")
         f.write(f"Win Rate: {win_rate:.1f}%\n")
         f.write(f"Daily PnL: {total_pnl:+.2f}%\n")
         f.write(f"Most Traded: {most_traded}\n")
@@ -114,6 +121,8 @@ def generate_daily_report():
         "buys": buys,
         "sells": sells,
         "holds": holds,
+        "total_completed_pairs": total_completed_pairs,
+        "win_count": win_count,
         "win_rate": win_rate,
         "total_pnl": total_pnl,
         "best_trade": best_trade,
