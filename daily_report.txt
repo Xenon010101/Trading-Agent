@@ -1,8 +1,8 @@
 Daily Trading Report - 2026-04-10
 ========================================
-Total Trades: 3
+Total Trades: 6
 BUY Orders: 0
-SELL Orders: 3
+SELL Orders: 6
 HOLD Decisions: 0
 Completed Pairs: 0
 Win Rate: 0.0%

@@ -105,6 +105,23 @@ VALIDATION_ABI = [
     }
 ]
 
+
+def get_eip1559_gas_params():
+    """Get EIP-1559 gas parameters for Sepolia"""
+    try:
+        latest_block = w3.eth.get_block('latest')
+        base_fee = latest_block.get('baseFeePerGas', w3.eth.gas_price)
+        max_priority = w3.to_wei(2, 'gwei')
+        max_fee = base_fee * 3 + max_priority
+        return {
+            "maxFeePerGas": int(max_fee),
+            "maxPriorityFeePerGas": int(max_priority),
+            "type": 2
+        }
+    except Exception:
+        return {"gasPrice": int(w3.eth.gas_price * 1.2), "type": 0}
+
+
 def submit_trade_intent(action, symbol):
     global _last_action, _last_symbol
     
@@ -189,10 +206,9 @@ def submit_trade_intent(action, symbol):
             print(f"  [SKIP] Intent rejected by RiskRouter: {reason}")
             return None
         
-        # Get nonce ONCE
         tx_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
+        gas_params = get_eip1559_gas_params()
         
-        # Submit transaction with reduced gas
         tx = router.functions.submitTradeIntent(
             intent,
             signed.signature
@@ -200,7 +216,7 @@ def submit_trade_intent(action, symbol):
             "from": wallet_address,
             "nonce": tx_nonce,
             "gas": 150000,
-            "gasPrice": w3.eth.gas_price,
+            **gas_params
         })
         
         signed_tx = w3.eth.account.sign_transaction(
@@ -284,7 +300,8 @@ def post_checkpoint(action, symbol, confidence, reason):
         
         short_notes = reason[:100] if reason else "AI decision"
         
-        # Build transaction with optimized gas
+        gas_params = get_eip1559_gas_params()
+        
         tx = validation.functions.postEIP712Attestation(
             AGENT_ID,
             checkpoint_hash,
@@ -294,16 +311,15 @@ def post_checkpoint(action, symbol, confidence, reason):
             "from": wallet_address,
             "nonce": _operator_nonce,
             "gas": 100000,
-            "gasPrice": w3.eth.gas_price,
+            **gas_params
         })
         
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         print(f"  Checkpoint sent: {action} {symbol} score={score} tx={tx_hash.hex()[:10]}...")
         
-        # Wait for receipt and confirmation
         try:
-            receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+            receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
             if receipt.status == 1:
                 print(f"  Checkpoint CONFIRMED on-chain")
                 entry["tx"] = tx_hash.hex()
@@ -345,11 +361,9 @@ def test_checkpoint():
             abi=VALIDATION_ABI
         )
         
-        # Read score before
         score_before = validation.functions.getAverageValidationScore(AGENT_ID).call()
         print(f"  Score before: {score_before}")
         
-        # Create checkpoint
         checkpoint_data = {
             "agentId": AGENT_ID,
             "timestamp": int(time.time()),
@@ -360,8 +374,8 @@ def test_checkpoint():
         checkpoint_str = json.dumps(checkpoint_data, sort_keys=True)
         checkpoint_hash = keccak(text=checkpoint_str)
         
-        # Get nonce
         nonce = w3.eth.get_transaction_count(wallet_address, "pending")
+        gas_params = get_eip1559_gas_params()
         score = 75
         
         tx = validation.functions.postEIP712Attestation(
@@ -373,21 +387,18 @@ def test_checkpoint():
             "from": wallet_address,
             "nonce": nonce,
             "gas": 100000,
-            "gasPrice": w3.eth.gas_price,
+            **gas_params
         })
         
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         print(f"  Test checkpoint sent: tx={tx_hash.hex()[:16]}...")
+        print(f"  Waiting for confirmation (up to 120s)...")
         
-        # Wait for confirmation
-        print(f"  Waiting for confirmation...")
-        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
         
         if receipt.status == 1:
             print(f"  Test checkpoint CONFIRMED")
-            
-            # Read score after
             score_after = validation.functions.getAverageValidationScore(AGENT_ID).call()
             print(f"  Score after: {score_after}")
             
@@ -400,13 +411,22 @@ def test_checkpoint():
             print(f"  Check gas price and balance")
             
     except Exception as e:
-        print(f"  TEST FAILED: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"  Checkpoint test failed: {e}")
+        print(f"  Continuing without on-chain checkpoints...")
     
     print("=" * 50 + "\n")
 
 
 def setup_agent():
+    try:
+        wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
+        balance = w3.eth.get_balance(wallet_address)
+        eth_balance = w3.from_wei(balance, 'ether')
+        print(f"  Operator ETH balance: {eth_balance} ETH")
+        if eth_balance < 0.01:
+            print(f"  WARNING: LOW BALANCE - get more Sepolia ETH!")
+    except Exception as e:
+        print(f"  Could not check balance: {e}")
+    
     print(f"  ERC-8004 Checkpoints : ACTIVE (ID: {AGENT_ID})")
     test_checkpoint()
