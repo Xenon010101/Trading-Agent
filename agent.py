@@ -72,12 +72,6 @@ def print_config():
     print("-" * 50 + "\n")
 
 
-def setup_agent():
-    """Setup ERC-8004 agent"""
-    from erc8004 import setup_agent
-    setup_agent()
-
-
 def check_exit_conditions(symbol, current_price):
     """Check if take profit or stop loss is triggered for open position"""
     if symbol not in risk.positions:

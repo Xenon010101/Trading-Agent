@@ -228,95 +228,185 @@ def submit_trade_intent(action, symbol):
         return None
 
 def post_checkpoint(action, symbol, confidence, reason):
-    global _operator_nonce, _checkpoint_counter
+    global _operator_nonce
     
-    # Increment counter
-    _checkpoint_counter += 1
+    score = int(confidence)
     
-    # Skip low-confidence checkpoints
-    if confidence == 0:
-        print("  [SKIP] Low-confidence checkpoint")
+    if score == 0:
+        print("  [SKIP] Zero confidence checkpoint")
         return
     
-    # Create checkpoint data for local save
     entry = {
         "time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "symbol": symbol,
         "action": action,
         "confidence": confidence,
         "reason": reason,
-        "on_chain": False
+        "on_chain": False,
+        "score": score
     }
     
-    # Only post on-chain every 3rd checkpoint to save gas
-    if _checkpoint_counter % 3 == 0:
+    try:
+        wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
+        
+        balance = w3.eth.get_balance(wallet_address)
+        if balance < w3.to_wei(0.001, "ether"):
+            print(f"  [WARN] Low balance ({w3.from_wei(balance, 'ether'):.4f} ETH) - checkpoint saved locally only")
+            with open("checkpoints.jsonl", "a") as f:
+                f.write(json.dumps(entry) + "\n")
+            return
+        
+        validation = w3.eth.contract(
+            address=Web3.to_checksum_address(VALIDATION_REGISTRY),
+            abi=VALIDATION_ABI
+        )
+        
+        # Read current score before posting
         try:
-            wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
-            
-            # Check balance
-            balance = w3.eth.get_balance(wallet_address)
-            if balance < w3.to_wei(0.002, "ether"):
-                print(f"  [WARN] Low balance - checkpoint saved locally only")
-                with open("checkpoints.jsonl", "a") as f:
-                    f.write(json.dumps(entry) + "\n")
-                return
-            
-            validation = w3.eth.contract(
-                address=Web3.to_checksum_address(VALIDATION_REGISTRY),
-                abi=VALIDATION_ABI
-            )
-            
-            # Get fresh nonce
-            _operator_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
-            
-            # Create checkpoint hash with proper structure
-            checkpoint_data = {
-                "agentId": int(os.getenv("AGENT_ID")),
-                "timestamp": int(time.time()),
-                "action": action,
-                "symbol": symbol,
-                "confidence": int(confidence)
-            }
-            checkpoint_str = json.dumps(checkpoint_data, sort_keys=True)
-            checkpoint_hash = keccak(text=checkpoint_str)
-            
-            print(f"  [DEBUG] Checkpoint hash: {checkpoint_hash.hex()}")
-            
-            # Cap score at 100, ensure uint8
-            score = min(int(confidence), 100)
-            short_notes = reason[:100] if reason else "AI decision"
-            
-            # Use 80% of current gas price
-            gas_price = int(w3.eth.gas_price * 0.8)
-            
-            tx = validation.functions.postEIP712Attestation(
-                int(os.getenv("AGENT_ID")),
-                checkpoint_hash,
-                score,
-                short_notes
-            ).build_transaction({
-                "from": wallet_address,
-                "nonce": _operator_nonce,
-                "gas": 120000,
-                "gasPrice": gas_price,
-            })
-            
-            signed_tx = w3.eth.account.sign_transaction(
-                tx, private_key=OPERATOR_PRIVATE_KEY
-            )
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            print(f"  Checkpoint on-chain: {action} {symbol} score={score}")
-            
-            entry["tx"] = tx_hash.hex()
-            entry["on_chain"] = True
-            
+            score_before = validation.functions.getAverageValidationScore(AGENT_ID).call()
+            print(f"  Score before checkpoint: {score_before}")
+        except Exception:
+            score_before = None
+        
+        # Get fresh nonce
+        _operator_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
+        
+        # Create checkpoint hash
+        checkpoint_data = {
+            "agentId": AGENT_ID,
+            "timestamp": int(time.time()),
+            "action": action,
+            "symbol": symbol,
+            "confidence": score
+        }
+        checkpoint_str = json.dumps(checkpoint_data, sort_keys=True)
+        checkpoint_hash = keccak(text=checkpoint_str)
+        
+        short_notes = reason[:100] if reason else "AI decision"
+        
+        # Build transaction with optimized gas
+        tx = validation.functions.postEIP712Attestation(
+            AGENT_ID,
+            checkpoint_hash,
+            score,
+            short_notes
+        ).build_transaction({
+            "from": wallet_address,
+            "nonce": _operator_nonce,
+            "gas": 100000,
+            "gasPrice": w3.eth.gas_price,
+        })
+        
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        print(f"  Checkpoint sent: {action} {symbol} score={score} tx={tx_hash.hex()[:10]}...")
+        
+        # Wait for receipt and confirmation
+        try:
+            receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+            if receipt.status == 1:
+                print(f"  Checkpoint CONFIRMED on-chain")
+                entry["tx"] = tx_hash.hex()
+                entry["on_chain"] = True
+            else:
+                print(f"  Checkpoint transaction FAILED (reverted)")
+                _operator_nonce = None
         except Exception as e:
-            print(f"  [ERR] Checkpoint failed: {e}")
-            _operator_nonce = None  # Reset nonce on error
+            print(f"  Checkpoint receipt timeout - may be pending")
+        
+        # Verify score updated
+        try:
+            score_after = validation.functions.getAverageValidationScore(AGENT_ID).call()
+            print(f"  Current validation score: {score_after}")
+            entry["score_after"] = score_after
+        except Exception as e:
+            print(f"  Could not verify score: {e}")
+        
+    except Exception as e:
+        print(f"  Checkpoint error: {e}")
+        _operator_nonce = None
     
-    # Save locally regardless
+    # Save locally
     with open("checkpoints.jsonl", "a") as f:
         f.write(json.dumps(entry) + "\n")
 
+
+def test_checkpoint():
+    """Test posting one checkpoint and verify the score updates"""
+    print("\n" + "=" * 50)
+    print("  TESTING CHECKPOINT POSTING")
+    print("=" * 50)
+    
+    try:
+        wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
+        
+        validation = w3.eth.contract(
+            address=Web3.to_checksum_address(VALIDATION_REGISTRY),
+            abi=VALIDATION_ABI
+        )
+        
+        # Read score before
+        score_before = validation.functions.getAverageValidationScore(AGENT_ID).call()
+        print(f"  Score before: {score_before}")
+        
+        # Create checkpoint
+        checkpoint_data = {
+            "agentId": AGENT_ID,
+            "timestamp": int(time.time()),
+            "action": "TEST",
+            "symbol": "BTC",
+            "confidence": 75
+        }
+        checkpoint_str = json.dumps(checkpoint_data, sort_keys=True)
+        checkpoint_hash = keccak(text=checkpoint_str)
+        
+        # Get nonce
+        nonce = w3.eth.get_transaction_count(wallet_address, "pending")
+        score = 75
+        
+        tx = validation.functions.postEIP712Attestation(
+            AGENT_ID,
+            checkpoint_hash,
+            score,
+            "Test checkpoint from agent"
+        ).build_transaction({
+            "from": wallet_address,
+            "nonce": nonce,
+            "gas": 100000,
+            "gasPrice": w3.eth.gas_price,
+        })
+        
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        print(f"  Test checkpoint sent: tx={tx_hash.hex()[:16]}...")
+        
+        # Wait for confirmation
+        print(f"  Waiting for confirmation...")
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+        
+        if receipt.status == 1:
+            print(f"  Test checkpoint CONFIRMED")
+            
+            # Read score after
+            score_after = validation.functions.getAverageValidationScore(AGENT_ID).call()
+            print(f"  Score after: {score_after}")
+            
+            if score_after > score_before:
+                print(f"  SUCCESS: Score updated from {score_before} to {score_after}")
+            else:
+                print(f"  WARNING: Score unchanged ({score_before} -> {score_after})")
+        else:
+            print(f"  FAILED: Transaction reverted on-chain")
+            print(f"  Check gas price and balance")
+            
+    except Exception as e:
+        print(f"  TEST FAILED: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    print("=" * 50 + "\n")
+
+
 def setup_agent():
     print(f"  ERC-8004 Checkpoints : ACTIVE (ID: {AGENT_ID})")
+    test_checkpoint()
