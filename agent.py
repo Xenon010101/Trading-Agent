@@ -1,3 +1,7 @@
+# InsiderEdge v1.0 - AI Trading Agent
+# Built for lablab.ai AI Trading Agents Hackathon
+# Author: Anmol Patel (@Anmol_patel2112)
+
 from market_data import get_market_summary_advanced as get_market_summary
 from ai_brain import analyze_market
 from risk_manager import RiskManager
@@ -101,84 +105,64 @@ def check_exit_conditions(symbol, current_price):
 def scan_coin(symbol):
     """Analyze a single coin and execute if conditions are met"""
     if risk.check_circuit_breaker():
-        print(f"   [CIRCUIT BREAKER ACTIVE] Skipping {symbol}")
+        print(f"   Circuit breaker active - skipping {symbol}")
         return None
     
     data = get_market_summary(symbol)
     
     if data is None or data.get("price") is None:
-        print(f"   [!] Skipping {symbol} - no data received")
+        print(f"   No data for {symbol}")
         return None
     
     current_price = data.get("price", {}).get("price")
     
     if not current_price or current_price == 0:
-        print(f"   [SKIP] No price data for {symbol}")
+        print(f"   No price for {symbol}")
         return None
     
-    # Prevent duplicate buys - if holding, check exits only
-    if symbol in risk.positions:
-        print(f"  Already holding {symbol} - checking exit")
+    is_holding = symbol in risk.positions
+    
+    if is_holding:
+        print(f"  Holding {symbol} - checking exits")
         exit_decision = check_exit_conditions(symbol, current_price)
-        if exit_decision and risk.can_trade(exit_decision):
+        if exit_decision:
             result = execute_trade("SELL", symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
                 log_decision(symbol, data, exit_decision, True)
-                print(f"  Submitting trade intent to blockchain...")
                 submit_trade_intent("SELL", symbol)
                 time.sleep(3)
                 post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
                 post_reputation(exit_decision["confidence"])
+                print(f"  Exited {symbol} position")
         return data
     
-    # Check exits first
-    exit_decision = check_exit_conditions(symbol, current_price)
-    if exit_decision and risk.can_trade(exit_decision):
-        result = execute_trade("SELL", symbol)
-        if result is not None:
-            risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
-            log_decision(symbol, data, exit_decision, True)
-            print(f"  Submitting trade intent to blockchain...")
-            submit_trade_intent("SELL", symbol)
-            time.sleep(3)
-            post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
-            post_reputation(exit_decision["confidence"])
-        return data
-    
-    # Get AI decision
     decision = analyze_market(data)
+    action = decision["action"]
+    confidence = decision["confidence"]
     
-    if risk.can_trade(decision):
-        action = decision["action"]
-        
-        # Never SELL if not holding position
-        if action == "SELL" and symbol not in risk.positions:
-            print(f"  [SKIP] No open position in {symbol} - skipping sell")
-        elif action in ["BUY", "SELL"]:
-            result = execute_trade(action, symbol)
-            
-            if result is not None:
-                price = data.get("price", {}).get("price")
-                risk.record_trade(symbol, action, price, decision["confidence"])
-                
-                print(f"  Submitting trade intent to blockchain...")
-                submit_trade_intent(action, symbol)
-                time.sleep(3)
-                post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
-                post_reputation(decision["confidence"])
-                
-                log_decision(symbol, data, decision, True)
-            else:
-                log_decision(symbol, data, decision, False)
-                post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
+    if action == "BUY" and risk.can_trade(decision):
+        result = execute_trade("BUY", symbol)
+        if result is not None:
+            risk.record_trade(symbol, "BUY", current_price, confidence)
+            log_decision(symbol, data, decision, True)
+            submit_trade_intent("BUY", symbol)
+            time.sleep(3)
+            post_checkpoint("BUY", symbol, confidence, decision["reason"])
+            post_reputation(confidence)
+            print(f"  Bought {symbol}")
         else:
-            post_checkpoint(action, symbol, decision["confidence"], decision["reason"])
+            post_checkpoint("BUY", symbol, confidence, decision["reason"])
             log_decision(symbol, data, decision, False)
+    elif action == "SELL":
+        print(f"  No position to sell in {symbol}")
+        post_checkpoint("SELL", symbol, confidence, decision["reason"])
+        log_decision(symbol, data, decision, False)
     else:
+        post_checkpoint("HOLD", symbol, confidence, decision["reason"])
         log_decision(symbol, data, decision, False)
     
-    time.sleep(30)  # Delay between coins
+    time.sleep(30)
     return data
 
 
@@ -186,34 +170,26 @@ def main():
     """Main entry point - runs continuous market scan loop"""
     global shutdown_requested, scan_cycle_count, last_reset_date
     
-    # Register Ctrl+C handler
     signal.signal(signal.SIGINT, handle_exit)
     
-    # Show banner
     print_banner()
     
-    # Verify environment setup
     if not check_env_keys():
         print("Continuing in limited mode...\n")
     
-    # Show current configuration
     print_config()
     
-    # Verify Kraken connection if not in paper mode
     if not PAPER_MODE:
         verify_kraken_connection()
     
-    # Setup ERC-8004 blockchain integration
-    setup_agent()
+    blockchain_ok = setup_agent()
     post_reputation(90)
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     
-    # Main scanning loop
     while not shutdown_requested:
-        # Check if date has changed - reset daily counters for new day
         if date.today() > risk.last_reset_date:
-            print(f"\n  [DATE CHANGE] New day detected: {date.today()}")
+            print(f"\n  New day: {date.today()}")
             risk.reset_for_new_day()
             risk.last_reset_date = date.today()
             generate_daily_report()
@@ -221,38 +197,33 @@ def main():
         scan_cycle_count += 1
         current_time = time.strftime("%H:%M:%S")
         
-        # Scan header
         print("\n" + "=" * 50)
         print(f"  SCAN CYCLE [{current_time}] #{scan_cycle_count}")
         print(f"  Analyzing {len(WATCHLIST)} coins: {', '.join(WATCHLIST)}")
         print("=" * 50)
         
-        # Analyze each coin in watchlist and collect prices
         current_prices = {}
         for symbol in WATCHLIST:
-            data = scan_coin(symbol)
-            if data and data.get("price"):
-                price = data["price"].get("price")
-                if price:
-                    current_prices[symbol] = price
+            try:
+                data = scan_coin(symbol)
+                if data and data.get("price"):
+                    price = data["price"].get("price")
+                    if price:
+                        current_prices[symbol] = price
+            except Exception as e:
+                print(f"  Error scanning {symbol}: {e}")
         
-        # Show open positions with current prices
         risk.get_open_positions(current_prices)
-        
-        # Show risk manager summary after each cycle
         risk.get_summary()
         
-        # Generate daily report every 10 cycles
         if scan_cycle_count % 10 == 0:
             generate_daily_report()
             calculate_sharpe_ratio()
         
-        # Calculate sleep time and wait for next cycle
         sleep_seconds = INTERVAL_MINUTES * 60
         print(f"\n  Next scan in {INTERVAL_MINUTES} minute(s)...")
         print(f"  Press Ctrl+C to stop\n")
         
-        # Sleep in small increments to allow quick exit on Ctrl+C
         while sleep_seconds > 0 and not shutdown_requested:
             time.sleep(min(sleep_seconds, 5))
             sleep_seconds -= 5

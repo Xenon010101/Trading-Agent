@@ -4,6 +4,7 @@ import json
 import time
 import re
 from dotenv import load_dotenv
+from config import MIN_CONFIDENCE
 
 load_dotenv()
 
@@ -30,6 +31,29 @@ def analyze_market(market_data):
     Returns:
         Dict with action (BUY/SELL/HOLD), confidence (0-100), and reason
     """
+    # Extract 24h change for momentum override
+    change_24h = 0
+    if market_data and "price" in market_data:
+        price_data = market_data["price"]
+        if isinstance(price_data, dict):
+            change_24h = price_data.get("change_24h", 0)
+    
+    print(f"  24h change: {change_24h:+.2f}%")
+    
+    # Momentum override - strong directional movement
+    if change_24h > 1.5:
+        return {
+            "action": "BUY",
+            "confidence": 70,
+            "reason": f"Strong 24h momentum: {change_24h:+.2f}%"
+        }
+    elif change_24h < -1.5:
+        return {
+            "action": "SELL",
+            "confidence": 70,
+            "reason": f"Strong 24h momentum: {change_24h:+.2f}%"
+        }
+    
     # Build comprehensive prompt with market data and trading rules
     prompt = f"""You are a conservative cryptocurrency trader using MULTI-SIGNAL SCORING. Calculate the EXACT score and respond ONLY with JSON.
 
@@ -135,8 +159,8 @@ Output ONLY the JSON, nothing else.
             decision["action"] = "HOLD"
             decision["confidence"] = 50
         
-        # Only trade if confidence >= 60 (MIN_CONFIDENCE)
-        if decision["confidence"] < 60:
+        # Only trade if confidence >= MIN_CONFIDENCE
+        if decision["confidence"] < MIN_CONFIDENCE:
             print(f"  [HOLD] Skipping trade - low confidence ({decision['confidence']}%)")
             decision["action"] = "HOLD"
         

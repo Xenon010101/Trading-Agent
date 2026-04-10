@@ -1,0 +1,13 @@
+[2026-04-10 14:19:23] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2215365096800000, overshot 928803883314047'}
+[2026-04-10 14:27:25] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2296482010400000, overshot 1009920796914047'}
+[2026-04-10 14:42:36] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 3336269798400000, overshot 2049708584914047'}
+[2026-04-10 14:43:54] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 3147375685600000, overshot 1860814472114047'}
+[2026-04-10 17:23:41] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2961386672800000, overshot 1674825459314047'}
+[2026-04-10 18:02:34] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2565251298400000, overshot 1278690084914047'}
+[2026-04-10 18:29:46] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2791608420000000, overshot 1505047206514047'}
+[2026-04-10 18:35:28] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 3070025372800000, overshot 1783464159314047'}
+[2026-04-10 20:05:11] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 3101422642400000, overshot 1814861428914047'}
+[2026-04-10 20:05:48] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2892590356800000, overshot 1606029143314047'}
+[2026-04-10 20:13:00] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2921243677600000, overshot 1634682464114047'}
+[2026-04-10 20:13:39] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2924875437600000, overshot 1638314224114047'}
+[2026-04-10 22:13:10] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1175275014018873, tx cost 2182193386400000, overshot 1006918372381127'}

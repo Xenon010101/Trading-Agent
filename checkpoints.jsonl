@@ -85,3 +85,25 @@
 {"time": "2026-04-10 00:24:58", "symbol": "BTC", "action": "SELL", "confidence": 65, "reason": "Score -1: Trend 0, MACD +1, RSI -2 (overbought), Volume 0 (assumed normal/low due to lack of data)", "on_chain": true, "tx": "76196687701529ba1b3db3990e7c0b64ae8c912ca820af45737ae4ad539b8686"}
 {"time": "2026-04-10 00:28:40", "symbol": "ETH", "action": "SELL", "confidence": 65, "reason": "Score -1: Trend -1, MACD +1, RSI -1 (slightly overbought), Volume 0 (no data provided)", "on_chain": false}
 {"time": "2026-04-10 00:32:36", "symbol": "SOL", "action": "SELL", "confidence": 65, "reason": "Score -1: Trend -1, MACD +1, RSI -1 (slightly overbought), Volume 0 (no volume data)", "on_chain": false}
+{"time": "2026-04-10 11:18:28", "symbol": "BTC", "action": "HOLD", "confidence": 50, "tx": "6d087b7207d13741ed2f13f1ab31adbd642ed28ef2893fdfa9981726e4e43c8f"}
+{"time": "2026-04-10 11:19:16", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "c321b5373060214ce57fe43dc684add6bc5563aa6768a54f10461815a2db0686"}
+{"time": "2026-04-10 11:20:15", "symbol": "SOL", "action": "BUY", "confidence": 65, "tx": "82477bf8ad067cb0179a5846dbfb1f30291d07e470b5db0288fa8e98841fd249"}
+{"time": "2026-04-10 11:32:03", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "b309a8230cafb4e4a2e864374e2011681c671e7c22f44b5c3dece1be3284b52d"}
+{"time": "2026-04-10 11:43:48", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "726418382c3d9e6904a0b582dd26a34ef3cc398050676d6cb6c2f43412757db5"}
+{"time": "2026-04-10 11:55:14", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "ed0bd2ab66eb23ddde7015dfce3a9e24a2bc59da609de0d331312d336cfac051"}
+{"time": "2026-04-10 12:06:38", "symbol": "ETH", "action": "SELL", "confidence": 65, "tx": "79c79be11438ccbbb1f91d9862f8b77c0eb98627f4e9dcec5f3f9b474e73f956"}
+{"time": "2026-04-10 12:18:28", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "cc0aa019d9f42a0b6969c74f06b220734dab2ec94251d477d5fb31a680e73221"}
+{"time": "2026-04-10 12:29:13", "symbol": "BTC", "action": "SELL", "confidence": 65, "tx": "e514ecb467cdc29d0dc0253f752c770bfe6f994eda386796507d68344ffd43fb"}
+{"time": "2026-04-10 12:30:02", "symbol": "ETH", "action": "SELL", "confidence": 65, "tx": "e4817d2f74beb9255c664c91562d044fd7d1868e9776329966dd10aa479bbfd4"}
+{"time": "2026-04-10 12:50:50", "symbol": "BTC", "action": "SELL", "confidence": 65, "tx": "5dbea17eb57124a61f9b1f092af4ad5d2e369d011cda85a0edc7d36f069d68c1"}
+{"time": "2026-04-10 12:51:39", "symbol": "ETH", "action": "SELL", "confidence": 65, "tx": "240e56bcbdd658c94922d1bf985a17019dfb1c5bc4762df19c87867aae9618f3"}
+{"time": "2026-04-10 13:03:01", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "360156cc4b55a01cbc553d344297c6c2edb7369771dd1e829c48744e96cbdf57"}
+{"time": "2026-04-10 13:14:26", "symbol": "ETH", "action": "HOLD", "confidence": 50, "tx": "8e90543c08f7a267520167cae4b1c27229db133e7721d11b167a5f3eb7ce47ca"}
+{"time": "2026-04-10 13:20:03", "symbol": "BTC", "action": "BUY", "confidence": 80, "tx": "4d12f49557ab8bd6d827effc1693eabcddca5b493be4a05350af3b648f470d75"}
+{"time": "2026-04-10 13:21:38", "symbol": "BTC", "action": "SELL", "confidence": 65, "tx": "e6be3bf69208add4e8039fcade22ee91f35bab5b497e17393884cce475a59915"}
+{"time": "2026-04-10 13:22:25", "symbol": "ETH", "action": "SELL", "confidence": 65, "tx": "8824ee506fff36d43e999dd41d9ab8068797765480af2c464fe4cc594b2206ca"}
+{"time": "2026-04-10 13:23:25", "symbol": "SOL", "action": "BUY", "confidence": 65, "tx": "73f6358db11428b99ac01d8bfaf3c559f19cf52d392e5bc8dc72afc73e81935c"}
+{"time": "2026-04-11 00:46:37", "symbol": "BTC", "action": "SELL", "confidence": 95, "tx": "9f2e3f61f0d0c3034ac7cfa4469288cd1360223497a92095fb9e9667312ed68d"}
+{"time": "2026-04-11 00:47:24", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "6a93f77ba4b48408247ba38574e4b94448807671a236508fee49e09c7f1211a5"}
+{"time": "2026-04-11 00:53:24", "symbol": "BTC", "action": "BUY", "confidence": 70, "tx": "8050d3f1a966ba4dd5e33ef93346ba1a16fa98293d7f5506a2edcf6188104cc5"}
+{"time": "2026-04-11 00:54:39", "symbol": "ETH", "action": "BUY", "confidence": 70, "tx": "fe01599c40ff003818eeaf3961c2c56a48c9ebf367681d0eff703e2f6249aa6f"}

@@ -5,26 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-RPCS = [
-    "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-    "https://rpc.sepolia.org",
-    "https://ethereum-sepolia.blockpi.network/v1/rpc/public",
-    "https://sepolia.gateway.tenderly.co"
-]
+RPC = "https://ethereum-sepolia-rpc.publicnode.com"
+w3 = Web3(Web3.HTTPProvider(RPC))
 
-w3 = None
-for rpc in RPCS:
-    try:
-        w3_test = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 30}))
-        if w3_test.is_connected():
-            w3 = w3_test
-            print(f"  Connected to Sepolia via: {rpc}")
-            break
-    except:
-        continue
-
-if not w3:
-    print("  [ERR] All RPCs failed")
+if w3.is_connected() and w3.eth.block_number > 0:
+    print(f"  Blockchain: ONLINE (block {w3.eth.block_number})")
+else:
+    print(f"  Blockchain: WARNING - continuing anyway")
 
 AGENT_REGISTRY = "0x97b07dDc405B0c28B17559aFFE63BdB3632d0ca3"
 HACKATHON_VAULT = "0x0E7CD8ef9743FEcf94f9103033a044caBD45fC90"
@@ -38,11 +25,10 @@ OPERATOR_WALLET = os.getenv("OPERATOR_ADDRESS") or os.getenv("AGENT_ADDRESS")
 AGENT_WALLET = os.getenv("AGENT_ADDRESS")
 AGENT_ID = int(os.getenv("AGENT_ID", "33"))
 
-# Track nonces to prevent conflicts
-_operator_nonce = None
 _last_action = None
 _last_symbol = None
-_checkpoint_counter = 0
+
+DEFAULT_GAS = 400000
 
 RISK_ROUTER_ABI = [
     {
@@ -104,12 +90,14 @@ RISK_ROUTER_ABI = [
 
 VALIDATION_ABI = [
     {
-        "name": "postEIP712Attestation",
+        "name": "postAttestation",
         "type": "function",
         "inputs": [
             {"name": "agentId", "type": "uint256"},
             {"name": "checkpointHash", "type": "bytes32"},
             {"name": "score", "type": "uint8"},
+            {"name": "proofType", "type": "uint8"},
+            {"name": "proof", "type": "bytes"},
             {"name": "notes", "type": "string"}
         ],
         "outputs": [],
@@ -148,333 +136,142 @@ REPUTATION_ABI = [
 ]
 
 
-def get_eip1559_gas_params():
-    """Get EIP-1559 gas parameters for Sepolia"""
+def _log_error(func_name, error):
+    """Silently log blockchain errors to file"""
     try:
-        latest_block = w3.eth.get_block('latest')
-        base_fee = latest_block.get('baseFeePerGas', w3.eth.gas_price)
-        max_priority = w3.to_wei(2, 'gwei')
-        max_fee = base_fee * 3 + max_priority
-        return {
-            "maxFeePerGas": int(max_fee),
-            "maxPriorityFeePerGas": int(max_priority),
-            "type": 2
-        }
-    except Exception:
-        return {"gasPrice": int(w3.eth.gas_price * 1.2), "type": 0}
+        with open("blockchain_errors.txt", "a") as f:
+            f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {func_name}: {error}\n")
+    except:
+        pass
 
 
 def submit_trade_intent(action, symbol):
     global _last_action, _last_symbol
     
-    print(f"  [DEBUG] Sending intent: {action} {symbol} (Agent ID: {AGENT_ID})")
-    
     if _last_action == action and _last_symbol == symbol:
-        print(f"  [SKIP] Duplicate intent: {action} {symbol}")
         return None
     
     try:
         wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
-        
         balance = w3.eth.get_balance(wallet_address)
         required = w3.to_wei(0.003, "ether")
         if balance < required:
-            print(f"  [WARN] Low balance ({w3.from_wei(balance, 'ether'):.4f} ETH) - skipping transaction")
             return None
         
-        router = w3.eth.contract(
-            address=Web3.to_checksum_address(RISK_ROUTER),
-            abi=RISK_ROUTER_ABI
-        )
-        
+        router = w3.eth.contract(address=Web3.to_checksum_address(RISK_ROUTER), abi=RISK_ROUTER_ABI)
         nonce = router.functions.getIntentNonce(AGENT_ID).call()
         deadline = int(time.time()) + 300
         
-        intent = (
-            AGENT_ID,
-            wallet_address,
-            f"{symbol}USD",
-            action,
-            50000,
-            100,
-            nonce,
-            deadline
-        )
+        intent = (AGENT_ID, wallet_address, f"{symbol}USD", action, 50000, 100, nonce, deadline)
         
-        domain_data = {
-            "name": "RiskRouter",
-            "version": "1",
-            "chainId": 11155111,
-            "verifyingContract": Web3.to_checksum_address(RISK_ROUTER)
-        }
+        domain_data = {"name": "RiskRouter", "version": "1", "chainId": 11155111, "verifyingContract": Web3.to_checksum_address(RISK_ROUTER)}
+        message_types = {"TradeIntent": [{"name": "agentId", "type": "uint256"}, {"name": "agentWallet", "type": "address"}, {"name": "pair", "type": "string"}, {"name": "action", "type": "string"}, {"name": "amountUsdScaled", "type": "uint256"}, {"name": "maxSlippageBps", "type": "uint256"}, {"name": "nonce", "type": "uint256"}, {"name": "deadline", "type": "uint256"}]}
+        message_data = {"agentId": AGENT_ID, "agentWallet": wallet_address, "pair": f"{symbol}USD", "action": action, "amountUsdScaled": 50000, "maxSlippageBps": 100, "nonce": nonce, "deadline": deadline}
         
-        message_types = {
-            "TradeIntent": [
-                {"name": "agentId", "type": "uint256"},
-                {"name": "agentWallet", "type": "address"},
-                {"name": "pair", "type": "string"},
-                {"name": "action", "type": "string"},
-                {"name": "amountUsdScaled", "type": "uint256"},
-                {"name": "maxSlippageBps", "type": "uint256"},
-                {"name": "nonce", "type": "uint256"},
-                {"name": "deadline", "type": "uint256"},
-            ]
-        }
-        
-        message_data = {
-            "agentId": AGENT_ID,
-            "agentWallet": wallet_address,
-            "pair": f"{symbol}USD",
-            "action": action,
-            "amountUsdScaled": 50000,
-            "maxSlippageBps": 100,
-            "nonce": nonce,
-            "deadline": deadline
-        }
-        
-        signed = w3.eth.account.sign_typed_data(
-            private_key=AGENT_PRIVATE_KEY,
-            domain_data=domain_data,
-            message_types=message_types,
-            message_data=message_data
-        )
+        signed = w3.eth.account.sign_typed_data(private_key=AGENT_PRIVATE_KEY, domain_data=domain_data, message_types=message_types, message_data=message_data)
         
         valid, reason = router.functions.simulateIntent(intent).call()
         if not valid:
-            print(f"  [SKIP] Intent rejected by RiskRouter: {reason}")
             return None
         
-        latest = w3.eth.get_block('latest')
-        base_fee = latest['baseFeePerGas']
-        max_fee = base_fee * 3
-        priority_fee = w3.to_wei(1, 'gwei')
-        
+        gas_price = w3.eth.gas_price
+        boosted_gas = int(gas_price * 2)
         tx_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
         
-        tx = router.functions.submitTradeIntent(
-            intent,
-            signed.signature
-        ).build_transaction({
-            "from": wallet_address,
-            "nonce": tx_nonce,
-            "gas": 150000,
-            "maxFeePerGas": max_fee,
-            "maxPriorityFeePerGas": priority_fee,
-            "type": 2,
-            "chainId": 11155111
+        tx = router.functions.submitTradeIntent(intent, signed.signature).build_transaction({
+            "from": wallet_address, "nonce": tx_nonce, "gas": DEFAULT_GAS, "gasPrice": boosted_gas, "chainId": 11155111
         })
         
-        signed_tx = w3.eth.account.sign_transaction(
-            tx, private_key=OPERATOR_PRIVATE_KEY
-        )
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        print(f"  [DEBUG] Tx sent: {tx_hash.hex()}")
-        
         _last_action = action
         _last_symbol = symbol
         
         receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120, poll_latency=3)
         if receipt.status == 1:
-            print(f"  ON-CHAIN trade submitted: {action} {symbol}")
-            print(f"  TX: {tx_hash.hex()}")
-        else:
-            print(f"  ON-CHAIN trade FAILED: {action} {symbol}")
-        
+            print(f"  Trade intent on-chain: {action} {symbol}")
         return tx_hash.hex()
         
     except Exception as e:
-        print(f"  [ERR] Trade intent failed: {e}")
+        _log_error("submit_trade_intent", str(e))
         return None
 
 
 def post_checkpoint(action, symbol, confidence, reason):
     try:
-        validation = w3.eth.contract(
-            address=Web3.to_checksum_address(VALIDATION_REGISTRY),
-            abi=VALIDATION_ABI
-        )
-        
-        balance = w3.eth.get_balance(
-            Web3.to_checksum_address(OPERATOR_WALLET)
-        )
+        balance = w3.eth.get_balance(Web3.to_checksum_address(OPERATOR_WALLET))
         if balance < w3.to_wei(0.005, 'ether'):
-            print(f"  [SKIP] Low balance: {w3.from_wei(balance, 'ether')} ETH")
             return
         
+        validation = w3.eth.contract(address=Web3.to_checksum_address(VALIDATION_REGISTRY), abi=VALIDATION_ABI)
         checkpoint_str = f"{AGENT_ID}{symbol}{action}{int(time.time())}"
         checkpoint_hash = w3.keccak(text=checkpoint_str)
-        
         score = min(int(confidence), 100)
         notes = str(reason)[:200] if reason else "AI decision"
         
-        gas_price = w3.eth.gas_price
-        boosted = int(gas_price * 1.5)
-        
-        nonce = w3.eth.get_transaction_count(
-            Web3.to_checksum_address(OPERATOR_WALLET),
-            'pending'
-        )
-        
-        tx = validation.functions.postEIP712Attestation(
-            int(AGENT_ID),
-            checkpoint_hash,
-            score,
-            notes
-        ).build_transaction({
-            "from": Web3.to_checksum_address(OPERATOR_WALLET),
-            "nonce": nonce,
-            "gas": 100000,
-            "gasPrice": boosted
-        })
-        
-        signed_tx = w3.eth.account.sign_transaction(
-            tx, private_key=OPERATOR_PRIVATE_KEY
-        )
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        print(f"  Checkpoint TX sent: {tx_hash.hex()[:20]}...")
-        
-        receipt = w3.eth.wait_for_transaction_receipt(
-            tx_hash, timeout=120, poll_latency=3
-        )
-        
-        if receipt.status == 1:
-            new_score = validation.functions.getAverageValidationScore(
-                int(AGENT_ID)
-            ).call()
-            print(f"  CHECKPOINT CONFIRMED! Validation score: {new_score}")
-        else:
-            print(f"  Checkpoint reverted")
-            
-        entry = {
-            "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "symbol": symbol,
-            "action": action,
-            "confidence": confidence,
-            "tx": tx_hash.hex()
-        }
-        with open("checkpoints.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-            
-    except Exception as e:
-        print(f"  [ERR] Checkpoint: {e}")
-
-
-def post_reputation(score=90, comment="Autonomous AI trading with risk management"):
-    try:
-        rep = w3.eth.contract(
-            address=Web3.to_checksum_address(REPUTATION_REGISTRY),
-            abi=REPUTATION_ABI
-        )
-        
-        outcome_ref = w3.keccak(text=f"InsiderEdge-{AGENT_ID}-{int(time.time())}")
-        
-        gas_price = w3.eth.gas_price
-        boosted = int(gas_price * 1.5)
-        
-        nonce = w3.eth.get_transaction_count(
-            Web3.to_checksum_address(OPERATOR_WALLET),
-            'pending'
-        )
-        
-        tx = rep.functions.submitFeedback(
-            int(AGENT_ID),
-            int(score),
-            outcome_ref,
-            comment,
-            1
-        ).build_transaction({
-            "from": Web3.to_checksum_address(OPERATOR_WALLET),
-            "nonce": nonce,
-            "gas": 100000,
-            "gasPrice": boosted
-        })
-        
-        signed_tx = w3.eth.account.sign_transaction(
-            tx, private_key=OPERATOR_PRIVATE_KEY
-        )
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        receipt = w3.eth.wait_for_transaction_receipt(
-            tx_hash, timeout=120, poll_latency=3
-        )
-        
-        if receipt.status == 1:
-            avg = rep.functions.getAverageScore(int(AGENT_ID)).call()
-            print(f"  REPUTATION CONFIRMED! Score: {avg}")
-        else:
-            print(f"  Reputation tx reverted")
-            
-    except Exception as e:
-        print(f"  [ERR] Reputation: {e}")
-
-
-def test_checkpoint():
-    """Test posting one checkpoint and verify the score updates"""
-    print("\n" + "=" * 50)
-    print("  TESTING CHECKPOINT POSTING")
-    print("=" * 50)
-    
-    try:
-        wallet_address = Web3.to_checksum_address(OPERATOR_WALLET)
-        
-        validation = w3.eth.contract(
-            address=Web3.to_checksum_address(VALIDATION_REGISTRY),
-            abi=VALIDATION_ABI
-        )
-        
-        score_before = validation.functions.getAverageValidationScore(AGENT_ID).call()
-        print(f"  Score before: {score_before}")
-        
-        checkpoint_data = {
-            "agentId": AGENT_ID,
-            "timestamp": int(time.time()),
-            "action": "TEST",
-            "symbol": "BTC",
-            "confidence": 75
-        }
-        checkpoint_str = json.dumps(checkpoint_data, sort_keys=True)
-        checkpoint_hash = keccak(text=checkpoint_str)
-        
-        nonce = w3.eth.get_transaction_count(wallet_address, "pending")
-        gas_params = get_eip1559_gas_params()
-        score = 75
-        
-        tx = validation.functions.postEIP712Attestation(
+        tx = validation.functions.postAttestation(
             AGENT_ID,
             checkpoint_hash,
             score,
-            "Test checkpoint from agent"
+            1,
+            b"",
+            notes
         ).build_transaction({
-            "from": wallet_address,
-            "nonce": nonce,
-            "gas": 100000,
-            **gas_params
+            "from": Web3.to_checksum_address(OPERATOR_WALLET),
+            "nonce": w3.eth.get_transaction_count(Web3.to_checksum_address(OPERATOR_WALLET)),
+            "gas": 350000,
+            "gasPrice": w3.eth.gas_price
+        })
+        
+        print("  Sending checkpoint...")
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        print(f"  Checkpoint TX: {tx_hash.hex()[:20]}...")
+        
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120, poll_latency=3)
+        if receipt.status == 1:
+            print(f"  Checkpoint SUCCESS: {action} {symbol}")
+            entry = {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "symbol": symbol, "action": action, "confidence": confidence, "tx": tx_hash.hex()}
+            with open("checkpoints.jsonl", "a") as f:
+                f.write(json.dumps(entry) + "\n")
+        else:
+            print(f"  Checkpoint failed")
+            
+    except Exception as e:
+        _log_error("post_checkpoint", str(e))
+        print(f"  Checkpoint failed: {str(e)[:100]}")
+
+
+def post_reputation(score=90, comment="AI trading"):
+    try:
+        rep = w3.eth.contract(address=Web3.to_checksum_address(REPUTATION_REGISTRY), abi=REPUTATION_ABI)
+        outcome_ref = w3.keccak(text=f"InsiderEdge-{AGENT_ID}-{int(time.time())}")
+        gas_price = w3.eth.gas_price
+        boosted_gas = int(gas_price * 2)
+        nonce = w3.eth.get_transaction_count(Web3.to_checksum_address(OPERATOR_WALLET), 'pending')
+        
+        tx = rep.functions.submitFeedback(int(AGENT_ID), int(score), outcome_ref, comment, 1).build_transaction({
+            "from": Web3.to_checksum_address(OPERATOR_WALLET), "nonce": nonce, "gas": DEFAULT_GAS, "gasPrice": boosted_gas, "chainId": 11155111
         })
         
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=OPERATOR_PRIVATE_KEY)
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        print(f"  Test checkpoint sent: tx={tx_hash.hex()[:16]}...")
-        print(f"  Waiting for confirmation (up to 120s)...")
-        
-        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120, poll_latency=3)
         
         if receipt.status == 1:
-            print(f"  Test checkpoint CONFIRMED")
-            score_after = validation.functions.getAverageValidationScore(AGENT_ID).call()
-            print(f"  Score after: {score_after}")
-            
-            if score_after > score_before:
-                print(f"  SUCCESS: Score updated from {score_before} to {score_after}")
-            else:
-                print(f"  WARNING: Score unchanged ({score_before} -> {score_after})")
-        else:
-            print(f"  FAILED: Transaction reverted on-chain")
-            print(f"  Check gas price and balance")
+            print(f"  Reputation confirmed!")
             
     except Exception as e:
-        print(f"  Checkpoint test failed: {e}")
-        print(f"  Continuing without on-chain checkpoints...")
-    
-    print("=" * 50 + "\n")
+        _log_error("post_reputation", str(e))
+
+
+def test_checkpoint():
+    if w3.is_connected() and w3.eth.block_number > 0:
+        print(f"  Blockchain: ONLINE")
+        return True
+    else:
+        print(f"  Blockchain: WARNING - continuing anyway")
+        return False
 
 
 def setup_agent():
@@ -484,9 +281,9 @@ def setup_agent():
         eth_balance = w3.from_wei(balance, 'ether')
         print(f"  Operator ETH balance: {eth_balance} ETH")
         if eth_balance < 0.01:
-            print(f"  WARNING: LOW BALANCE - get more Sepolia ETH!")
+            print(f"  Low balance - get more Sepolia ETH!")
     except Exception as e:
-        print(f"  Could not check balance: {e}")
+        _log_error("setup_agent", str(e))
     
-    print(f"  ERC-8004 Checkpoints : ACTIVE (ID: {AGENT_ID})")
-    test_checkpoint()
+    print(f"  Agent ID: {AGENT_ID}")
+    return test_checkpoint()
