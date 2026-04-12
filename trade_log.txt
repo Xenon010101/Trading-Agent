@@ -1088,3 +1088,9 @@
 {"timestamp": "2026-04-12 21:39:38", "symbol": "BTC", "price": 70911, "action": "SELL", "confidence": 70, "reason": "SELL: -2.67% 24h momentum below -1.5% threshold", "executed": false}
 {"timestamp": "2026-04-12 21:40:50", "symbol": "ETH", "price": 2186.69, "action": "SELL", "confidence": 70, "reason": "SELL: -2.74% 24h momentum below -1.5% threshold", "executed": false}
 {"timestamp": "2026-04-12 21:41:38", "symbol": "SOL", "price": 81.6, "action": "SELL", "confidence": 70, "reason": "SELL: -3.67% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:47:28", "symbol": "BTC", "price": 70939, "action": "SELL", "confidence": 70, "reason": "SELL: -2.70% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:48:15", "symbol": "ETH", "price": 2187.9, "action": "SELL", "confidence": 70, "reason": "SELL: -2.74% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:49:03", "symbol": "SOL", "price": 81.72, "action": "SELL", "confidence": 70, "reason": "SELL: -3.59% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:56:40", "symbol": "BTC", "price": 70883, "action": "SELL", "confidence": 70, "reason": "SELL: -2.76% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:57:38", "symbol": "ETH", "price": 2187.38, "action": "SELL", "confidence": 70, "reason": "SELL: -2.70% 24h momentum below -1.5% threshold", "executed": false}
+{"timestamp": "2026-04-12 21:58:39", "symbol": "SOL", "price": 81.72, "action": "SELL", "confidence": 70, "reason": "SELL: -3.53% 24h momentum below -1.5% threshold", "executed": false}

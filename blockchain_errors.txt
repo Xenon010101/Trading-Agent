@@ -21,3 +21,4 @@
 [2026-04-12 13:41:52] post_checkpoint: Transaction HexBytes('0x2c695b9ff10c2746e24a90124af7704bdb186eddbfe3b60e5d25a9444f1bee02') is not in the chain after 120 seconds
 [2026-04-12 21:25:19] post_checkpoint: Transaction HexBytes('0x6e30cebe809e9abb81dbecae26e142146e65c1b8a7c6e38b613cc9e51f95272b') is not in the chain after 120 seconds
 [2026-04-12 21:25:54] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
+[2026-04-12 21:56:40] post_checkpoint: Transaction HexBytes('0xd3ac7e97f659b09f72c198e004cf65bde39413b6519feac9886c5232b247ed97') is not in the chain after 120 seconds
