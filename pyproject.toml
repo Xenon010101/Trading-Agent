@@ -11,10 +11,3 @@ dependencies = [
     "eth-account>=0.5.0",
     "eth-utils>=2.0.0",
 ]
-
-[project.scripts]
-insideredge = "agent:main"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
