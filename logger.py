@@ -26,9 +26,9 @@ def log_decision(symbol, market_data, decision, executed):
     
     action = decision.get("action", "HOLD")
     confidence = decision.get("confidence", 0)
+    reason = decision.get("reason", "")
     
-    if executed:
-        print(f"  {symbol}: {action} (confidence: {confidence}%)")
+    print(f"  {symbol}: {action} - conf: {confidence}% | {reason}")
 
 
 def print_session_summary():

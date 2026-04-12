@@ -45,13 +45,13 @@ def analyze_market(market_data):
         return {
             "action": "BUY",
             "confidence": 70,
-            "reason": f"Strong 24h momentum: {change_24h:+.2f}%"
+            "reason": f"BUY: {change_24h:+.2f}% 24h momentum above +1.5% threshold"
         }
     elif change_24h < -1.5:
         return {
             "action": "SELL",
             "confidence": 70,
-            "reason": f"Strong 24h momentum: {change_24h:+.2f}%"
+            "reason": f"SELL: {change_24h:+.2f}% 24h momentum below -1.5% threshold"
         }
     
     # Build comprehensive prompt with market data and trading rules

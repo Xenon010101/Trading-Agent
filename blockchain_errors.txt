@@ -11,3 +11,13 @@
 [2026-04-10 20:13:00] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2921243677600000, overshot 1634682464114047'}
 [2026-04-10 20:13:39] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1286561213485953, tx cost 2924875437600000, overshot 1638314224114047'}
 [2026-04-10 22:13:10] post_reputation: {'code': -32000, 'message': 'insufficient funds for gas * price + value: balance 1175275014018873, tx cost 2182193386400000, overshot 1006918372381127'}
+[2026-04-11 23:36:46] post_checkpoint: Transaction HexBytes('0xa92d3540318415df4194d2d2944bd409835950f065c5acad176dce9e0e25b65e') is not in the chain after 120 seconds
+[2026-04-11 23:44:37] post_checkpoint: Transaction HexBytes('0x022b229a1ea03c9a303ffa31bf3836709cd2d2a88d7a4aec6e83fe02a1181411') is not in the chain after 120 seconds
+[2026-04-12 01:33:25] post_checkpoint: Transaction HexBytes('0x35f5699e08705a5cce8cc10c4bbfe1e7d9df4f1d50272060cc66c24542611c68') is not in the chain after 120 seconds
+[2026-04-12 12:47:24] post_checkpoint: Transaction HexBytes('0xbf3c3fab791da806d12495003c222a23f890fbe2ef17cb6098ccacb78fdbb11d') is not in the chain after 120 seconds
+[2026-04-12 13:01:26] post_checkpoint: Transaction HexBytes('0x900b4b5a79408903d5842102da5e110240cd06948b319aa07ece600f81429a66') is not in the chain after 120 seconds
+[2026-04-12 13:10:29] post_checkpoint: Transaction HexBytes('0x8439a6518c4c858274262e2b12c4e3f3b60071ea90277583799c1d4d7a93964f') is not in the chain after 120 seconds
+[2026-04-12 13:20:29] post_checkpoint: Transaction HexBytes('0x56f0ab5e11f5da2049d4bc62ea2c1e7b53f6f38f783915f0e3ced9d0f83a1c52') is not in the chain after 120 seconds
+[2026-04-12 13:41:52] post_checkpoint: Transaction HexBytes('0x2c695b9ff10c2746e24a90124af7704bdb186eddbfe3b60e5d25a9444f1bee02') is not in the chain after 120 seconds
+[2026-04-12 21:25:19] post_checkpoint: Transaction HexBytes('0x6e30cebe809e9abb81dbecae26e142146e65c1b8a7c6e38b613cc9e51f95272b') is not in the chain after 120 seconds
+[2026-04-12 21:25:54] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
