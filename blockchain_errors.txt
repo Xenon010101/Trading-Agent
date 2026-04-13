@@ -23,3 +23,22 @@
 [2026-04-12 21:25:54] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
 [2026-04-12 21:56:40] post_checkpoint: Transaction HexBytes('0xd3ac7e97f659b09f72c198e004cf65bde39413b6519feac9886c5232b247ed97') is not in the chain after 120 seconds
 [2026-04-12 22:06:15] post_checkpoint: Transaction HexBytes('0xadc1d19017ea794a5b7fbbc2655842fb9a4c504f80ddc525f98bd1578f1508a9') is not in the chain after 120 seconds
+[2026-04-12 22:16:02] post_checkpoint: Transaction HexBytes('0x125732cd2932ace3c503f24c46e6a8ce7ccb54ee0d21c26bfc1a971385d42457') is not in the chain after 120 seconds
+[2026-04-12 22:18:36] post_checkpoint: Transaction HexBytes('0x374a897a1f0dfaa5c0d5f4582153c96dc2f9a2d879ff0e93116c80065911be03') is not in the chain after 120 seconds
+[2026-04-12 22:50:16] post_checkpoint: Transaction HexBytes('0x7b1593f4c5aba3e7fdcc262f043b845d47c6ec5ea24609dd28fd4aba7912f56e') is not in the chain after 120 seconds
+[2026-04-12 22:52:53] post_checkpoint: Transaction HexBytes('0xdb2a23b6f64c9e4ff8d43124f954cf10fa83d1d4e6c69e7aba6248efa56a4ab3') is not in the chain after 120 seconds
+[2026-04-12 22:55:28] post_checkpoint: Transaction HexBytes('0x06d655ed0419801cab3e29e7759e8ed8254c9d5c69197e9c76aa866d2d353769') is not in the chain after 120 seconds
+[2026-04-12 23:03:05] post_checkpoint: Transaction HexBytes('0xfb5c649b33023770b1af38768b447c8f0057016d090ba40d6af50e8dcbce8294') is not in the chain after 120 seconds
+[2026-04-12 23:14:04] post_checkpoint: Transaction HexBytes('0xcfd7865d50b5a26798515409699a903e10ce74543a17510ce02e12a93e6a292c') is not in the chain after 120 seconds
+[2026-04-13 13:05:25] post_checkpoint: Transaction HexBytes('0x7b092bcc9d8225a3a2dc4634632697c53cb067564576c51c946bec9395a0c73a') is not in the chain after 120 seconds
+[2026-04-13 13:24:55] post_checkpoint: Transaction HexBytes('0xe0c54207c41f67c6c74b21d585747846df358fd765cbbe306466659fe493c46f') is not in the chain after 120 seconds
+[2026-04-13 13:27:32] post_checkpoint: Transaction HexBytes('0x4fdcf5d7518f000eeeb1c4b4ef2c111315ba9fd4f6fa922c97268eaec5fbf1fd') is not in the chain after 120 seconds
+[2026-04-13 13:36:42] post_checkpoint: Transaction HexBytes('0x8c6032baaa148d8f67cd95fefdba147c34eb845eb2faa8867e6db79ea70d1e5b') is not in the chain after 120 seconds
+[2026-04-13 13:47:28] post_checkpoint: Transaction HexBytes('0x5e3c7e3236d18b27405750e9d486c47c5171bff54f20c1de2f4ac48c6e1c502c') is not in the chain after 120 seconds
+[2026-04-13 13:55:06] post_checkpoint: Transaction HexBytes('0x78574441f901e99c0cd6dfd232ef49b2bf70c8d40367b57bfc29d7028f6b9f00') is not in the chain after 120 seconds
+[2026-04-13 13:58:51] post_checkpoint: Transaction HexBytes('0x93cca3bbcd6b8a81267dfd4f38766562e86a2f17c914f8a7a73214b4960101cb') is not in the chain after 120 seconds
+[2026-04-13 14:07:25] post_checkpoint: Transaction HexBytes('0xa393957938fc102ff85bcf1706df9278ec2a4c0e140442573def3f9ac1ffb5ff') is not in the chain after 120 seconds
+[2026-04-13 14:18:15] post_checkpoint: Transaction HexBytes('0x69152cec0ed2e1b2600d926bc4695074f6725ba0f6205902c6bf7cadbe246568') is not in the chain after 120 seconds
+[2026-04-13 14:18:50] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
+[2026-04-13 14:36:27] post_checkpoint: Transaction HexBytes('0x246dcf1f7f120ce30c479ad8c99fe5c9e64e06cc13cade110e5c1e09f14010b3') is not in the chain after 120 seconds
+[2026-04-13 19:33:13] post_checkpoint: Transaction HexBytes('0x06c83cd7dc8b78363eca019a986c9022337ade2b49b09addf6e057d803215681') is not in the chain after 120 seconds

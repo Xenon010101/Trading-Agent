@@ -128,3 +128,5 @@
 {"time": "2026-04-12 12:03:39", "symbol": "SOL", "action": "SELL", "confidence": 70, "tx": "60d9edaabc102f5a8f184e455bb5f3ccd3558192fa1ec8fb8d5e190fabc44b6c"}
 {"time": "2026-04-12 18:32:51", "symbol": "BTC", "action": "SELL", "confidence": 95, "tx": "3dfe85b2dcd2ab268e4561444add3b544298904208e7f2c97b3151ccaae51223"}
 {"time": "2026-04-12 18:33:28", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "1c85b54fbd6a82a4074427b619afa85269e1e2ba8e6b2e3cedbb569768621855"}
+{"time": "2026-04-13 21:03:49", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "ba918e5537f8d78067b16c1313abf5fe364659f6fae41420d35b7c9bbf6f3e16"}
+{"time": "2026-04-13 21:05:50", "symbol": "SOL", "action": "SELL", "confidence": 95, "tx": "6e765c8e5c61e931230f8592f3f249581313a39152a0354321ab31d68a89b29a"}

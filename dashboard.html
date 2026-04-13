@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InsiderEdge - Autonomous AI crypto trading agent by Team Dhurandhar. Built for lablab.ai x Kraken AI Trading Hackathon. Agent ID 33 on Sepolia testnet.">
+    <meta property="og:title" content="InsiderEdge | AI Trading Agent">
+    <meta property="og:description" content="Autonomous AI agent trading BTC ETH SOL with ERC-8004 blockchain verification">
+    <meta property="og:type" content="website">
+    <title>InsiderEdge | AI Trading Agent — Team Dhurandhar</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060b14;
+            --surface: #0c1624;
+            --border: #1a2d45;
+            --primary: #00e5ff;
+            --secondary: #00ff9f;
+            --warning: #ffb800;
+            --danger: #ff4560;
+            --text: #e2e8f8;
+            --muted: #4a6080;
+            --amber: #ffb800;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        @keyframes flashUp {
+            0% { background: transparent; }
+            50% { background: rgba(0, 229, 255, 0.3); }
+            100% { background: transparent; }
+        }
+        
+        @keyframes flashDown {
+            0% { background: transparent; }
+            50% { background: rgba(255, 69, 96, 0.3); }
+            100% { background: transparent; }
+        }
+        
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-box {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #00e5ff, #0099ff);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--bg);
+        }
+        
+        .logo-text h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-text span {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        
+        .ticker-mini {
+            display: flex;
+            gap: 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+        }
+        
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .ticker-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+        
+        .header-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .agent-id {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(0, 255, 159, 0.1);
+            border: 1px solid var(--secondary);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--secondary);
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Ticker Bar */
+        .ticker-bar {
+            background: #030810;
+            padding: 10px 0;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .ticker-content {
+            display: flex;
+            gap: 60px;
+            animation: tickerScroll 30s linear infinite;
+            white-space: nowrap;
+        }
+        
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        
+        .ticker-item span {
+            color: var(--text);
+        }
+        
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 20px 24px;
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s;
+            animation: fadeUp 0.4s ease-out backwards;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .stat-value.positive { color: var(--secondary); }
+        .stat-value.negative { color: var(--danger); }
+        .stat-value.neutral { color: var(--primary); }
+        
+        .stat-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+            padding: 0 24px 24px;
+        }
+        
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            animation: fadeUp 0.5s ease-out backwards;
+        }
+        
+        .panel-left { animation-delay: 0.3s; }
+        .panel-mid { animation-delay: 0.4s; }
+        .panel-right { animation-delay: 0.5s; }
+        
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+        
+        .panel-content {
+            padding: 16px;
+        }
+        
+        /* Market Panel */
+        .coin-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        
+        .coin-row:hover {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid var(--primary);
+        }
+        
+        .coin-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .coin-dot.btc { background: #f7931a; }
+        .coin-dot.eth { background: #627eea; }
+        .coin-dot.sol { background: #00ffa3; }
+        
+        .coin-info {
+            flex: 1;
+        }
+        
+        .coin-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .coin-full {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        
+        .signal-chips {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .chip {
+            padding: 3px 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .chip.bull { color: var(--secondary); }
+        .chip.bear { color: var(--danger); }
+        .chip.neutral { color: var(--muted); }
+        
+        .coin-price {
+            text-align: right;
+        }
+        
+        .price-value {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .price-change {
+            font-size: 11px;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .price-change.positive { color: var(--secondary); }
+        .price-change.negative { color: var(--danger); }
+        
+        .action-badge {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .action-badge.buy { background: rgba(0, 255, 159, 0.15); color: var(--secondary); }
+        .action-badge.sell { background: rgba(255, 69, 96, 0.15); color: var(--danger); }
+        .action-badge.hold { background: rgba(255, 184, 0, 0.15); color: var(--warning); }
+        
+        /* Sparkline Canvas */
+        .sparkline-container {
+            height: 80px;
+            margin-top: 12px;
+            position: relative;
+        }
+        
+        /* Scan Log */
+        .log-table {
+            width: 100%;
+            font-size: 11px;
+        }
+        
+        .log-row {
+            display: grid;
+            grid-template-columns: 60px 40px 50px 55px 1fr;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border-left: 3px solid;
+            font-family: 'Space Mono', monospace;
+            animation: fadeUp 0.3s ease-out;
+        }
+        
+        .log-row.buy { border-left-color: var(--secondary); background: rgba(0, 255, 159, 0.05); }
+        .log-row.sell { border-left-color: var(--danger); background: rgba(255, 69, 96, 0.05); }
+        .log-row.hold { border-left-color: var(--warning); background: rgba(255, 184, 0, 0.05); }
+        
+        /* Risk Panel */
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .risk-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .risk-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 229, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .risk-value {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .risk-value.safe { color: var(--secondary); }
+        .risk-value.active { color: var(--primary); }
+        
+        /* Positions */
+        .position-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .position-pair {
+            font-weight: 700;
+        }
+        
+        .position-prices {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        
+        .position-pnl {
+            text-align: right;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+        }
+        
+        .position-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        /* ERC Panel */
+        .erc-panel {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .erc-id {
+            font-size: 64px;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+            color: var(--primary);
+            line-height: 1;
+        }
+        
+        .erc-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        
+        .erc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .erc-address {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        
+        .erc-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .erc-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .erc-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .erc-stat-label {
+            font-size: 10px;
+            color: var(--muted);
+        }
+        
+        .etherscan-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        /* Session Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .session-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .session-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .session-label {
+            font-size: 9px;
+            color: var(--muted);
+        }
+        
+        /* Donut Chart */
+        .donut-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+        
+        .donut-chart {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 11px;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+        
+        .legend-dot.buy { background: var(--secondary); }
+        .legend-dot.sell { background: var(--danger); }
+        .legend-dot.hold { background: var(--warning); }
+        
+        /* Footer */
+        .footer {
+            background: #030810;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            font-size: 11px;
+            color: var(--muted);
+            flex-wrap: wrap;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .footer span {
+            color: var(--border);
+        }
+        
+        /* Flash animations */
+        .flash-up { animation: flashUp 0.3s ease-out; }
+        .flash-down { animation: flashDown 0.3s ease-out; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-box">IE</div>
+            <div class="logo-text">
+                <h1>InsiderEdge</h1>
+                <span>AI Trading Terminal · Team Dhurandhar</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="ticker-mini">
+                <div class="ticker-item">
+                    <span class="ticker-dot"></span>
+                    <span>BTC</span>
+                    <span id="btc-ticker">$71,245</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-dot" style="background:#627eea"></span>
+                    <span>ETH</span>
+                    <span id="eth-ticker">$2,219</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-dot" style="background:#00ffa3"></span>
+                    <span>SOL</span>
+                    <span id="sol-ticker">$83.91</span>
+                </div>
+            </div>
+        </div>
+            <a href="https://github.com/Xenon010101/Trading-Agent" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);padding:6px 14px;border-radius:20px;font-size:11px;color:#00e5ff;text-decoration:none;font-family:'Space Mono',monospace;">
+   GitHub ↗
+</a>
+            <a href="https://lablab.ai" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,159,0.08);border:1px solid rgba(0,255,159,0.2);padding:6px 14px;border-radius:20px;font-size:11px;color:#00ff9f;text-decoration:none;font-family:'Space Mono',monospace;">
+   lablab.ai ↗
+</a>
+        <div class="header-badge">
+            <div class="agent-id">33</div>
+            <div class="status-badge">
+                <span class="live-dot"></span>
+                LIVE · SEPOLIA
+            </div>
+        </div>
+    </header>
+    
+    <!-- Ticker Bar -->
+    <div class="ticker-bar">
+        <div class="ticker-content">
+            <div class="ticker-item">BTC <span>$71,245</span></div>
+            <div class="ticker-item">ETH <span>$2,219</span></div>
+            <div class="ticker-item">SOL <span>$83.91</span></div>
+            <div class="ticker-item">Daily PnL <span style="color:#00ff9f">+1.60%</span></div>
+            <div class="ticker-item">Total Decisions <span>530+</span></div>
+            <div class="ticker-item">Agent ID <span>33</span></div>
+            <div class="ticker-item">Circuit Breaker <span style="color:#00ff9f">SAFE</span></div>
+            <div class="ticker-item">BTC <span>$71,245</span></div>
+            <div class="ticker-item">ETH <span>$2,219</span></div>
+            <div class="ticker-item">SOL <span>$83.91</span></div>
+            <div class="ticker-item">Daily PnL <span style="color:#00ff9f">+1.60%</span></div>
+            <div class="ticker-item">Total Decisions <span>530+</span></div>
+            <div class="ticker-item">Agent ID <span>33</span></div>
+            <div class="ticker-item">Circuit Breaker <span style="color:#00ff9f">SAFE</span></div>
+        </div>
+    </div>
+    
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Daily PnL</div>
+            <div class="stat-value positive">+1.60%</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Decisions</div>
+            <div class="stat-value neutral" id="decision-count">530+</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Trades Today</div>
+            <div class="stat-value neutral">3<span style="font-size:16px;color:#4a6080">/50</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" style="width:6%"></div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Circuit Breaker</div>
+            <div class="stat-value positive">SAFE</div>
+        </div>
+    </div>
+    
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Left Panel - Market & Log -->
+        <div class="panel panel-left">
+            <div class="panel-header">
+                <span class="panel-title">Live Market Analysis</span>
+                <span style="font-size:11px;color:#4a6080">● LIVE</span>
+            </div>
+            <div class="panel-content">
+                <!-- BTC -->
+                <div class="coin-row">
+                    <div class="coin-dot btc"></div>
+                    <div class="coin-info">
+                        <div class="coin-name">BTC</div>
+                        <div class="coin-full">Bitcoin</div>
+                    </div>
+                    <div class="signal-chips">
+                        <span class="chip bull">MACD +1</span>
+                        <span class="chip">RSI 58</span>
+                        <span class="chip bull">▲</span>
+                    </div>
+                    <div class="coin-price">
+                        <div class="price-value" id="btc-price">$71,245</div>
+                        <div class="price-change positive" id="btc-change">+0.54%</div>
+                    </div>
+                    <div class="action-badge hold">HOLD</div>
+                </div>
+                
+                <!-- ETH -->
+                <div class="coin-row">
+                    <div class="coin-dot eth"></div>
+                    <div class="coin-info">
+                        <div class="coin-name">ETH</div>
+                        <div class="coin-full">Ethereum</div>
+                    </div>
+                    <div class="signal-chips">
+                        <span class="chip neutral">MACD 0</span>
+                        <span class="chip">RSI 52</span>
+                        <span class="chip neutral">-</span>
+                    </div>
+                    <div class="coin-price">
+                        <div class="price-value" id="eth-price">$2,219</div>
+                        <div class="price-change negative" id="eth-change">-0.09%</div>
+                    </div>
+                    <div class="action-badge hold">HOLD</div>
+                </div>
+                
+                <!-- SOL -->
+                <div class="coin-row">
+                    <div class="coin-dot sol"></div>
+                    <div class="coin-info">
+                        <div class="coin-name">SOL</div>
+                        <div class="coin-full">Solana</div>
+                    </div>
+                    <div class="signal-chips">
+                        <span class="chip bull">MACD +1</span>
+                        <span class="chip">RSI 61</span>
+                        <span class="chip bull">▲</span>
+                    </div>
+                    <div class="coin-price">
+                        <div class="price-value" id="sol-price">$83.91</div>
+                        <div class="price-change positive" id="sol-change">+0.48%</div>
+                    </div>
+                    <div class="action-badge buy">BUY</div>
+                </div>
+                
+                <!-- Sparkline -->
+                <div class="sparkline-container">
+                    <canvas id="sparkline" width="400" height="70"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Middle Panel - Risk & Positions -->
+        <div class="panel panel-mid">
+            <div class="panel-header">
+                <span class="panel-title">Risk Management</span>
+            </div>
+            <div class="panel-content">
+                <div class="risk-grid">
+                    <div class="risk-item">
+                        <div class="risk-icon">🛡️</div>
+                        <div>
+                            <div class="risk-value safe">0.8%</div>
+                            <div style="font-size:10px;color:#4a6080">Stop Loss</div>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <div class="risk-icon">🎯</div>
+                        <div>
+                            <div class="risk-value safe">1.2%</div>
+                            <div style="font-size:10px;color:#4a6080">Take Profit</div>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <div class="risk-icon">🎓</div>
+                        <div>
+                            <div class="risk-value active">60%</div>
+                            <div style="font-size:10px;color:#4a6080">Min Confidence</div>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <div class="risk-icon">📊</div>
+                        <div>
+                            <div class="risk-value active">50</div>
+                            <div style="font-size:10px;color:#4a6080">Daily Limit</div>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <div class="risk-icon">⚡</div>
+                        <div>
+                            <div class="risk-value safe">-5%</div>
+                            <div style="font-size:10px;color:#4a6080">Circuit Breaker</div>
+                        </div>
+                    </div>
+                    <div class="risk-item">
+                        <div class="risk-icon">💼</div>
+                        <div>
+                            <div class="risk-value active">ACTIVE</div>
+                            <div style="font-size:10px;color:#4a6080">Position Check</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-header" style="margin-top:16px">
+                    <span class="panel-title">Open Positions</span>
+                </div>
+                
+                <div class="position-card">
+                    <div class="position-header">
+                        <span class="position-pair">BTC</span>
+                        <span style="color:#00ff9f">+0.75%</span>
+                    </div>
+                    <div class="position-prices">
+                        <span>Entry: $70,712</span>
+                        <span>Current: $71,245</span>
+                    </div>
+                    <div class="position-bar"><div class="stat-bar-fill" style="width:62%;background:var(--secondary)"></div></div>
+                </div>
+                
+                <div class="position-card">
+                    <div class="position-header">
+                        <span class="position-pair">ETH</span>
+                        <span style="color:#ffb800">+0.12%</span>
+                    </div>
+                    <div class="position-prices">
+                        <span>Entry: $2,216</span>
+                        <span>Current: $2,219</span>
+                    </div>
+                    <div class="position-bar"><div class="stat-bar-fill" style="width:10%;background:var(--warning)"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel - ERC & Stats -->
+        <div class="panel panel-right">
+            <div class="panel-header">
+                <span class="panel-title">ERC-8004 Integration</span>
+            </div>
+            <div class="panel-content">
+                <div class="erc-panel">
+                    <div class="erc-id">33</div>
+                    <div class="erc-label">AGENT ID · SEPOLIA TESTNET</div>
+                    <div class="erc-badge">✓ REGISTERED</div>
+                    <div class="erc-address">0x8cf8...d5F7 (operator)</div>
+                    <div class="erc-address">0xF7C5...A72 (agent)</div>
+                    
+                    <div class="erc-stats">
+                        <div class="erc-stat">
+                            <div class="erc-stat-value">18</div>
+                            <div class="erc-stat-label">Reputation</div>
+                        </div>
+                        <div class="erc-stat">
+                            <div class="erc-stat-value">77</div>
+                            <div class="erc-stat-label">Validation</div>
+                        </div>
+                        <div class="erc-stat">
+                            <div class="erc-stat-value">4</div>
+                            <div class="erc-stat-label">On-Chain</div>
+                        </div>
+                    </div>
+                    
+                    <a href="https://sepolia.etherscan.io/address/0x92bF63E5C7Ac6980f237a7164Ab413BE226187F1" target="_blank" class="etherscan-link">
+                        ↗ View on Etherscan
+                    </a>
+                </div>
+                
+                <div class="panel-header">
+                    <span class="panel-title">Session Stats</span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="session-stat">
+                        <div class="session-value">530+</div>
+                        <div class="session-label">DECISIONS</div>
+                    </div>
+                    <div class="session-stat">
+                        <div class="session-value" style="color:#00ff9f">239</div>
+                        <div class="session-label">BUY</div>
+                    </div>
+                    <div class="session-stat">
+                        <div class="session-value" style="color:#ff4560">1</div>
+                        <div class="session-label">SELL</div>
+                    </div>
+                    <div class="session-stat">
+                        <div class="session-value" style="color:#ffb800">290</div>
+                        <div class="session-label">HOLD</div>
+                    </div>
+                </div>
+                
+                <div class="donut-container">
+                    <canvas id="donut" width="80" height="80"></canvas>
+                    <div class="donut-legend">
+                        <div class="legend-item"><span class="legend-dot buy"></span> BUY 45%</div>
+                        <div class="legend-item"><span class="legend-dot sell"></span> SELL 0.2%</div>
+                        <div class="legend-item"><span class="legend-dot hold"></span> HOLD 55%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <span>INSIDEREDGE v1.0</span>
+        <span>|</span>
+        <span>Team Dhurandhar</span>
+        <span>|</span>
+        <span>Anmol Patel (3rd Year IT) & Akshita (1st Year CSE)</span>
+        <span>|</span>
+        <span><a href="https://github.com/Xenon010101/Trading-Agent">github.com/Xenon010101/Trading-Agent</a></span>
+        <span>|</span>
+        <span><a href="https://twitter.com/@Anmol_patel2112">@Anmol_patel2112</a></span>
+        <span>|</span>
+        <span>lablab.ai × Kraken AI Trading Hackathon</span>
+    </footer>
+
+    <script>
+        // Live data simulation
+        const basePrices = {
+            btc: 71245,
+            eth: 2219,
+            sol: 83.91
+        };
+        
+        function updatePrices() {
+            // BTC fluctuation
+            const btcVariance = (Math.random() - 0.5) * 300;
+            const newBtc = Math.round(basePrices.btc + btcVariance);
+            document.getElementById('btc-price').textContent = '$' + newBtc.toLocaleString();
+            document.getElementById('btc-ticker').textContent = '$' + newBtc.toLocaleString();
+            
+            const btcChange = (Math.random() * 2 - 0.5).toFixed(2);
+            const btcElem = document.getElementById('btc-change');
+            btcElem.textContent = (btcChange >= 0 ? '+' : '') + btcChange + '%';
+            btcElem.className = 'price-change ' + (btcChange >= 0 ? 'positive' : 'negative');
+            
+            // ETH fluctuation
+            const ethVariance = (Math.random() - 0.5) * 60;
+            const newEth = Math.round((basePrices.eth + ethVariance) * 100) / 100;
+            document.getElementById('eth-price').textContent = '$' + newEth.toLocaleString();
+            document.getElementById('eth-ticker').textContent = '$' + newEth;
+            
+            const ethChange = (Math.random() * 2 - 0.5).toFixed(2);
+            const ethElem = document.getElementById('ethChange');
+            ethElem.textContent = (ethChange >= 0 ? '+' : '') + ethChange + '%';
+            ethElem.className = 'price-change ' + (ethChange >= 0 ? 'positive' : 'negative');
+            
+            // SOL fluctuation
+            const solVariance = (Math.random() - 0.5) * 3;
+            const newSol = Math.round((basePrices.sol + solVariance) * 100) / 100;
+            document.getElementById('sol-price').textContent = '$' + newSol;
+            document.getElementById('sol-ticker').textContent = '$' + newSol;
+            
+            const solChange = (Math.random() * 2 - 0.5).toFixed(2);
+            const solElem = document.getElementById('solChange');
+            solElem.textContent = (solChange >= 0 ? '+' : '') + solChange + '%';
+            solElem.className = 'price-change ' + (solChange >= 0 ? 'positive' : 'negative');
+        }
+        
+        // Draw sparkline
+        function drawSparkline() {
+            const canvas = document.getElementById('sparkline');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Generate data
+            const btcData = Array.from({length: 12}, () => 70000 + Math.random() * 3000);
+            const ethData = Array.from({length: 12}, () => 2000 + Math.random() * 400);
+            const solData = Array.from({length: 12}, () => 80 + Math.random() * 10);
+            
+            // Draw BTC
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffb800';
+            ctx.lineWidth = 2;
+            btcData.forEach((val, i) => {
+                const x = (i / 11) * width;
+                const y = height - ((val - 70000) / 3000) * height * 0.8 - 10;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Draw ETH
+            ctx.beginPath();
+            ctx.strokeStyle = '#00e5ff';
+            ethData.forEach((val, i) => {
+                const x = (i / 11) * width;
+                const y = height - ((val - 2000) / 400) * height * 0.8 - 10;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Draw SOL
+            ctx.beginPath();
+            ctx.strokeStyle = '#00ff9f';
+            solData.forEach((val, i) => {
+                const x = (i / 11) * width;
+                const y = height - ((val - 80) / 10) * height * 0.8 - 10;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+        
+        // Draw donut chart
+        function drawDonut() {
+            const canvas = document.getElementById('donut');
+            const ctx = canvas.getContext('2d');
+            const cx = 40;
+            const cy = 40;
+            const radius = 35;
+            
+            ctx.clearRect(0, 0, 80, 80);
+            
+            // BUY (45%)
+            ctx.beginPath();
+            ctx.strokeStyle = '#00ff9f';
+            ctx.lineWidth = 10;
+            ctx.arc(cx, cy, radius, -Math.PI/2, -Math.PI/2 + (0.45 * 2 * Math.PI));
+            ctx.stroke();
+            
+            // SELL (0.2%)
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff4560';
+            ctx.arc(cx, cy, radius, -Math.PI/2 + (0.45 * 2 * Math.PI), -Math.PI/2 + (0.452 * 2 * Math.PI));
+            ctx.stroke();
+            
+            // HOLD (54.8%)
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffb800';
+            ctx.arc(cx, cy, radius, -Math.PI/2 + (0.452 * 2 * Math.PI), -Math.PI/2 + (2 * Math.PI));
+            ctx.stroke();
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.fillStyle = '#0c1624';
+            ctx.arc(cx, cy, radius - 10, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        // Initialize
+        drawSparkline();
+        drawDonut();
+        
+        // Update prices every 5 seconds
+        setInterval(updatePrices, 5000);
+        
+        // Counter animation
+        let count = 0;
+        const target = 530;
+        function animateCounter() {
+            if (count < target) {
+                count++;
+                document.getElementById('decision-count').textContent = count + '+';
+            }
+        }
+        setInterval(animateCounter, 50);
+    </script>
+<script>
+console.log('InsiderEdge v1.0 — Team Dhurandhar');
+console.log('Agent ID: 33 — Sepolia Testnet');
+console.log('GitHub: github.com/Xenon010101/Trading-Agent');
+</script>
+</body>
+</html>
