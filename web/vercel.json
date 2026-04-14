@@ -1,6 +1,9 @@
 {
-  "buildCommand": "echo 'Static build - no installation needed'",
-  "installCommand": "echo 'No dependencies required for static HTML'",
-  "framework": null,
-  "outputDirectory": "."
+  "build": {
+    "command": "exit 0",
+    "outputDirectory": "."
+  },
+  "install": {
+    "command": "exit 0"
+  }
 }
