@@ -1,10 +1,12 @@
 Daily Trading Report - 2026-04-13
 ========================================
-Total Trades: 99
-BUY Orders: 0
-SELL Orders: 99
+Total Trades: 113
+BUY Orders: 3
+SELL Orders: 110
 HOLD Decisions: 0
-Completed Pairs: 0
+Completed Pairs: 2
 Win Rate: 0.0%
-Daily PnL: +0.00%
-Most Traded: N/A
+Daily PnL: -2.38%
+Most Traded: BTC
+Best Trade: ETH -1.05%
+Worst Trade: SOL -1.33%

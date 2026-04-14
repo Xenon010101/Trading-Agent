@@ -1249,3 +1249,5 @@
 {"timestamp": "2026-04-13 21:04:07", "symbol": "SOL", "price": 82.59, "action": "SELL", "confidence": 95, "reason": "SL hit -1.33%", "executed": true}
 {"timestamp": "2026-04-13 21:28:13", "symbol": "ETH", "price": 2208.95, "action": "SELL", "confidence": 75, "reason": "Score -2: Trend -1, MACD -1, RSI +1 (35-50), Volume 0 (not provided)", "executed": false}
 {"timestamp": "2026-04-13 21:29:01", "symbol": "SOL", "price": 82.59, "action": "SELL", "confidence": 75, "reason": "Score -2: Trend -1, MACD -1, RSI +1 (oversold), Volume 0 (assumed normal/low)", "executed": false}
+{"timestamp": "2026-04-13 22:55:46", "symbol": "ETH", "price": 2227.38, "action": "BUY", "confidence": 70, "reason": "BUY: +1.59% 24h momentum above +1.5% threshold", "executed": true}
+{"timestamp": "2026-04-13 22:56:57", "symbol": "SOL", "price": 83.37, "action": "BUY", "confidence": 70, "reason": "BUY: +1.76% 24h momentum above +1.5% threshold", "executed": true}
