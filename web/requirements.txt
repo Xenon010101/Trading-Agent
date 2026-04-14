@@ -1,0 +1,2 @@
+# InsiderEdge Dashboard - No dependencies needed
+# This is a static HTML file that works in any browser

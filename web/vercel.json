@@ -1,5 +1,6 @@
 {
-  "rewrites": [
-    {"source": "/(.*)", "destination": "/index.html"}
-  ]
+  "buildCommand": "echo 'Static build - no installation needed'",
+  "installCommand": "echo 'No dependencies required for static HTML'",
+  "framework": null,
+  "outputDirectory": "."
 }
