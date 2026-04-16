@@ -42,3 +42,13 @@
 [2026-04-13 14:18:50] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
 [2026-04-13 14:36:27] post_checkpoint: Transaction HexBytes('0x246dcf1f7f120ce30c479ad8c99fe5c9e64e06cc13cade110e5c1e09f14010b3') is not in the chain after 120 seconds
 [2026-04-13 19:33:13] post_checkpoint: Transaction HexBytes('0x06c83cd7dc8b78363eca019a986c9022337ade2b49b09addf6e057d803215681') is not in the chain after 120 seconds
+[2026-04-14 16:25:18] post_checkpoint: Transaction HexBytes('0xa63e6e865060038b973cb758792f849f72d25c17f6fcf3eb01fe9542ba9ae938') is not in the chain after 120 seconds
+[2026-04-14 16:27:21] post_reputation: Transaction HexBytes('0xccbe491a9c67eb3a66a6acfb5af3c2b9fc82f344c86f9ebc08c2a0f39b2cdf40') is not in the chain after 120 seconds
+[2026-04-14 16:30:00] submit_trade_intent: Transaction HexBytes('0x82a9c733563cf4c7af12c603a7f0f9049210f54286e314013251feccdc7b346d') is not in the chain after 120 seconds
+[2026-04-14 16:30:05] post_checkpoint: {'code': -32000, 'message': 'replacement transaction underpriced'}
+[2026-04-14 21:02:05] post_checkpoint: Transaction HexBytes('0x3bf8f53a67106f0eb837462c435c01cacf9f8ad6881e9bb7eb50cf57554449ec') is not in the chain after 120 seconds
+[2026-04-14 21:47:32] post_reputation: Transaction HexBytes('0x3445dbbf186575403096574ad81eb7964ef22e13853a8cf421169fbd8b209b57') is not in the chain after 120 seconds
+[2026-04-14 21:55:57] post_checkpoint: Transaction HexBytes('0xded8f7ca4fa8cd70308386b692fa11390e98c17a79985140eb26bbb82e54030b') is not in the chain after 120 seconds
+[2026-04-14 21:58:09] post_reputation: ('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))
+[2026-04-14 22:16:15] post_reputation: HTTPSConnectionPool(host='ethereum-sepolia-rpc.publicnode.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='ethereum-sepolia-rpc.publicnode.com', port=443): Failed to resolve 'ethereum-sepolia-rpc.publicnode.com' ([Errno 11001] getaddrinfo failed)"))
+[2026-04-14 22:27:42] post_reputation: HTTPSConnectionPool(host='ethereum-sepolia-rpc.publicnode.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='ethereum-sepolia-rpc.publicnode.com', port=443): Failed to resolve 'ethereum-sepolia-rpc.publicnode.com' ([Errno 11001] getaddrinfo failed)"))
