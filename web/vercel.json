@@ -1,9 +1,6 @@
 {
-  "build": {
-    "command": "exit 0",
-    "outputDirectory": "."
-  },
-  "install": {
-    "command": "exit 0"
-  }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" }
+  ]
 }
