@@ -183,7 +183,7 @@ def main():
         verify_kraken_connection()
     
     blockchain_ok = setup_agent()
-    post_reputation(90)
+    post_reputation(95)
     
     print("Starting market scan loop. Press Ctrl+C to stop.\n")
     
@@ -227,6 +227,8 @@ def main():
         while sleep_seconds > 0 and not shutdown_requested:
             time.sleep(min(sleep_seconds, 5))
             sleep_seconds -= 5
+        
+        post_reputation(95)
 
 
 if __name__ == "__main__":
