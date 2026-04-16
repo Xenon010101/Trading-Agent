@@ -130,3 +130,9 @@
 {"time": "2026-04-12 18:33:28", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "1c85b54fbd6a82a4074427b619afa85269e1e2ba8e6b2e3cedbb569768621855"}
 {"time": "2026-04-13 21:03:49", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "ba918e5537f8d78067b16c1313abf5fe364659f6fae41420d35b7c9bbf6f3e16"}
 {"time": "2026-04-13 21:05:50", "symbol": "SOL", "action": "SELL", "confidence": 95, "tx": "6e765c8e5c61e931230f8592f3f249581313a39152a0354321ab31d68a89b29a"}
+{"time": "2026-04-14 19:26:59", "symbol": "BTC", "action": "SELL", "confidence": 95, "tx": "f34c5360456a3a0323f55d4dd9595ba219de7bc159012dc5bdce8a00efb990ae"}
+{"time": "2026-04-14 19:27:48", "symbol": "SOL", "action": "SELL", "confidence": 95, "tx": "ff3ed97966b4cf720a345d588151667ce0ad8c8d084b8077c808e9a605c12a24"}
+{"time": "2026-04-14 20:04:48", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "03a3a795f38df2b686ab4ce913fbc6378f4ae146ff1b0ad25c688236d60a4bb3"}
+{"time": "2026-04-14 20:18:36", "symbol": "SOL", "action": "SELL", "confidence": 95, "tx": "28ae3eeb7fc3419f2ee3c7aa1970eed54e85beeb1a548c340f1c322ff585edd7"}
+{"time": "2026-04-14 20:33:00", "symbol": "ETH", "action": "SELL", "confidence": 95, "tx": "aa3f5df7e4e782758c121559f01017116a3804495138a563479dd5fb4f19dd98"}
+{"time": "2026-04-14 20:46:00", "symbol": "BTC", "action": "SELL", "confidence": 95, "tx": "a6a20f3843a08ae37a0cf396b9121c0302296708d260d5c4a24c357597e37943"}
