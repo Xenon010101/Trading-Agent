@@ -107,7 +107,7 @@ PAPER_MODE = True
 
 ## Deployment
 
-- **Dashboard**: [Vercel Deployment](https://trading-agent-peach.vercel.app/)
+
 - **Source**: [GitHub Repository](https://github.com/Xenon010101/Trading-Agent)
 
 ## Disclaimer
