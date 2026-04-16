@@ -1,0 +1,6 @@
+# Build and deployment settings
+title: InsiderEdge
+description: AI Crypto Trading Agent
+theme: jekyll-theme-primer
+destination: .
+safe: true
