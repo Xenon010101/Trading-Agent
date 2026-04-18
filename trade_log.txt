@@ -1328,3 +1328,4 @@
 {"timestamp": "2026-04-18 16:43:36", "symbol": "BTC", "price": 76044, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1 (slightly overbought), Volume 0 (no volume data)", "executed": false}
 {"timestamp": "2026-04-18 16:44:23", "symbol": "SOL", "price": 86.77, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend 0, MACD +1, RSI -1 (slightly overbought), Volume 0 (assumed normal/low due to lack of data)", "executed": false}
 {"timestamp": "2026-04-18 16:50:15", "symbol": "BTC", "price": 75996, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend +1, MACD +1, RSI -1, Volume 0 (assumed normal/low due to lack of data)", "executed": false}
+{"timestamp": "2026-04-18 16:51:36", "symbol": "SOL", "price": 86.73, "action": "HOLD", "confidence": 50, "reason": "Score 0: Trend 0, MACD 0, RSI 0 (neutral), Volume 0 (assumed normal/low)", "executed": false}
