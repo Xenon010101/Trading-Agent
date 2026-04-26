@@ -16,6 +16,23 @@ import sys
 import os
 from dotenv import load_dotenv
 
+try:
+    from terminal_ui import (
+        print_banner as ui_banner,
+        print_config as ui_print_config,
+        print_scan_header as ui_scan_header,
+        print_decision as ui_print_decision,
+        print_positions as ui_print_positions,
+        print_risk_summary as ui_print_risk_summary,
+        print_next_scan as ui_print_next_scan,
+        print_alert as ui_print_alert,
+        print_blockchain_status as ui_blockchain_status,
+        print_reputation_ok as ui_reputation_ok,
+    )
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+
 load_dotenv()
 
 # Global risk manager instance - persists across scan cycles
