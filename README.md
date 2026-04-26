@@ -1,6 +1,6 @@
 # InsiderEdge
 
-> Autonomous AI Crypto Trading Agent | ERC-8004 Hackathon Submission | lablab.ai × Kraken
+> Autonomous AI Crypto Trading Agent
 
 ## Live Dashboard
 
@@ -111,11 +111,11 @@ npm run preview # Preview production build
 
 ## Disclaimer
 
-This is a hackathon project. Paper trading only. Not financial advice.
+Paper trading only. Not financial advice.
 
 ---
 
-**Team Dhurandhar** | lablab.ai × Kraken AI Trading Hackathon
+**InsiderEdge** - Autonomous AI Crypto Trading Agent
 
 - Anmol Patel — 3rd Year IT
 - Akshita — 1st Year CSE

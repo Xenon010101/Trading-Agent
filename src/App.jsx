@@ -75,7 +75,7 @@ function App() {
         </main>
         
         <footer className="border-t border-[#1a2d45] p-4 text-center text-sm text-gray-500">
-          <span className="text-[#00e5ff]">INSIDEREDGE</span> v2.0 | AI Crypto Trading | Team Dhurandhar | lablab.ai × Kraken
+          <span className="text-[#00e5ff]">INSIDEREDGE</span> v2.0 | AI Crypto Trading
         </footer>
       </div>
     </div>

@@ -1,6 +1,5 @@
 # InsiderEdge v1.0 - AI Trading Agent
-# Built for lablab.ai AI Trading Agents Hackathon
-# Author: Anmol Patel (@Anmol_patel2112)
+# Author: Anmol Patel
 
 from market_data import get_market_summary_advanced as get_market_summary
 from ai_brain import analyze_market
