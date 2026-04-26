@@ -109,11 +109,17 @@ def scan_coin(symbol):
     
     data = get_market_summary(symbol)
     
-    if data is None or data.get("price") is None:
+    if data is None:
         print(f"   No data for {symbol}")
         return None
     
-    current_price = data.get("price", {}).get("price")
+    price_data = data.get("price")
+    if isinstance(price_data, dict):
+        current_price = price_data.get("price")
+    else:
+        current_price = price_data
+    
+    change_24h = data.get("change_24h", 0)
     
     if not current_price or current_price == 0:
         print(f"   No price for {symbol}")
@@ -205,10 +211,12 @@ def main():
         for symbol in WATCHLIST:
             try:
                 data = scan_coin(symbol)
-                if data and data.get("price"):
-                    price = data["price"].get("price")
-                    if price:
-                        current_prices[symbol] = price
+                if data:
+                    price_data = data.get("price")
+                    if isinstance(price_data, dict):
+                        current_prices[symbol] = price_data.get("price")
+                    else:
+                        current_prices[symbol] = price_data
             except Exception as e:
                 print(f"  Error scanning {symbol}: {e}")
         
