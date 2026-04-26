@@ -4,7 +4,6 @@
 
 ## Live Dashboard
 
-- **Vercel**: [trading-agent-peach.vercel.app](https://trading-agent-peach.vercel.app)
 - **GitHub Pages**: [Xenon010101.github.io/Trading-Agent](https://Xenon010101.github.io/Trading-Agent)
 
 ## Live Stats
@@ -109,11 +108,6 @@ npm run preview # Preview production build
 1. Push to GitHub
 2. Settings → Pages → Source: main, folder: `/docs`
 3. Dashboard: `https://Xenon010101.github.io/Trading-Agent`
-
-### Vercel
-1. Import GitHub repo to Vercel
-2. Root directory: `web/`
-3. Framework: Other
 
 ## Disclaimer
 
