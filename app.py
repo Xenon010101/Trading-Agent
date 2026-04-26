@@ -1,31 +1,12 @@
 """
 InsiderEdge - Autonomous AI Crypto Trading Agent
-Entry point for local execution and Vercel deployment
+Entry point for local execution
 """
 import os
 
 os.environ.setdefault('PAPER_MODE', 'true')
 
-# Vercel serverless function handler
-def app(environ, start_response):
-    """WSGI app for Vercel"""
-    status = '200 OK'
-    headers = [('Content-Type', 'application/json')]
-    start_response(status, headers)
-    return [b'{"status": "ok", "message": "InsiderEdge running"}']
 
-
-# Handler for serverless
-def handler(request=None):
-    """Vercel Python handler"""
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "body": {"message": "InsiderEdge is running", "status": "ok"}
-    }
-
-
-# Local execution
 def run():
     """Run the agent locally"""
     print("=" * 50)
