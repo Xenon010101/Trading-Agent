@@ -2,6 +2,7 @@ import os, time, json
 from web3 import Web3
 from eth_utils import keccak
 from dotenv import load_dotenv
+import config
 
 load_dotenv()
 
@@ -175,7 +176,7 @@ def submit_trade_intent(action, symbol):
             return None
         
         gas_price = w3.eth.gas_price
-        boosted_gas = int(gas_price * 2)
+        boosted_gas = int(gas_price * config.GAS_MULTIPLIER)
         tx_nonce = w3.eth.get_transaction_count(wallet_address, "pending")
         
         tx = router.functions.submitTradeIntent(intent, signed.signature).build_transaction({
@@ -187,7 +188,7 @@ def submit_trade_intent(action, symbol):
         _last_action = action
         _last_symbol = symbol
         
-        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120, poll_latency=3)
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=config.TX_TIMEOUT, poll_latency=3)
         if receipt.status == 1:
             print(f"  Trade intent on-chain: {action} {symbol}")
         return tx_hash.hex()
@@ -210,7 +211,8 @@ def post_checkpoint(action, symbol, confidence, reason):
         notes = str(reason)[:200] if reason else "AI decision"
         
         gas_price = w3.eth.gas_price
-        boosted_gas = int(gas_price * 2)
+        boosted_gas = int(gas_price * config.GAS_MULTIPLIER)
+        nonce = w3.eth.get_transaction_count(Web3.to_checksum_address(OPERATOR_WALLET), 'pending')
         
         tx = validation.functions.postAttestation(
             AGENT_ID,
@@ -221,7 +223,7 @@ def post_checkpoint(action, symbol, confidence, reason):
             notes
         ).build_transaction({
             "from": Web3.to_checksum_address(OPERATOR_WALLET),
-            "nonce": w3.eth.get_transaction_count(Web3.to_checksum_address(OPERATOR_WALLET)),
+            "nonce": nonce,
             "gas": 350000,
             "gasPrice": boosted_gas
         })
@@ -231,7 +233,7 @@ def post_checkpoint(action, symbol, confidence, reason):
         tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         print(f"  Checkpoint TX: {tx_hash.hex()[:20]}...")
         
-        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=180, poll_latency=3)
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=config.TX_TIMEOUT, poll_latency=3)
         if receipt.status == 1:
             print(f"  Checkpoint SUCCESS: {action} {symbol}")
             entry = {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "symbol": symbol, "action": action, "confidence": confidence, "tx": tx_hash.hex()}
@@ -250,7 +252,7 @@ def post_reputation(score=95, comment="AI trading"):
         rep = w3.eth.contract(address=Web3.to_checksum_address(REPUTATION_REGISTRY), abi=REPUTATION_ABI)
         outcome_ref = w3.keccak(text=f"InsiderEdge-{AGENT_ID}-{int(time.time())}")
         gas_price = w3.eth.gas_price
-        boosted_gas = int(gas_price * 2)
+        boosted_gas = int(gas_price * config.GAS_MULTIPLIER)
         nonce = w3.eth.get_transaction_count(Web3.to_checksum_address(OPERATOR_WALLET), 'pending')
         
         tx = rep.functions.submitFeedback(int(AGENT_ID), int(score), outcome_ref, comment, 1).build_transaction({
