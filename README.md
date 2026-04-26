@@ -4,7 +4,8 @@
 
 ## Live Dashboard
 
-**[View Live Dashboard](https://trading-agent-peach.vercel.app/)**
+- **Vercel**: [trading-agent-peach.vercel.app](https://trading-agent-peach.vercel.app)
+- **GitHub Pages**: [Xenon010101.github.io/Trading-Agent](https://Xenon010101.github.io/Trading-Agent)
 
 ## Live Stats
 
@@ -75,14 +76,18 @@ Every decision (BUY/SELL/HOLD) is posted as a checkpoint with confidence score �
 
 ## Tech Stack
 
-- **Python 3.x**
-- **Groq API** (LLaMA 3.3 70B)
-- **CoinGecko API** (price & OHLC data)
-- **Web3.py** (blockchain)
-- **Technical Analysis** (RSI, MACD, trend detection)
+- **Python 3.x** - Trading agent backend
+- **React + Vite** - Dashboard frontend
+- **Framer Motion** - Animations
+- **Tailwind CSS** - Styling
+- **Groq API** (LLaMA 3.3 70B) - AI decision making
+- **CoinGecko API** - Price & OHLC data
+- **Web3.py** - Blockchain interaction
+- **Technical Analysis** - RSI, MACD, trend detection
 
 ## Setup
 
+### Backend (Trading Agent)
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
@@ -90,25 +95,25 @@ cp .env.example .env
 python agent.py
 ```
 
-## Configuration
-
-Edit `config.py`:
-
-```python
-WATCHLIST = ["BTC", "ETH", "SOL"]
-INTERVAL_MINUTES = 5
-MAX_TRADES_PER_DAY = 50
-MIN_CONFIDENCE = 55
-MAX_LOSS_PERCENT = 5
-TAKE_PROFIT_PERCENT = 1.2
-STOP_LOSS_PERCENT = 0.8
-PAPER_MODE = True
+### Frontend (Dashboard)
+```bash
+npm install
+npm run dev      # Development server at http://localhost:5173
+npm run build    # Production build
+npm run preview # Preview production build
 ```
 
 ## Deployment
 
+### GitHub Pages
+1. Push to GitHub
+2. Settings → Pages → Source: main, folder: `/docs`
+3. Dashboard: `https://Xenon010101.github.io/Trading-Agent`
 
-- **Source**: [GitHub Repository](https://github.com/Xenon010101/Trading-Agent)
+### Vercel
+1. Import GitHub repo to Vercel
+2. Root directory: `web/`
+3. Framework: Other
 
 ## Disclaimer
 
@@ -122,3 +127,4 @@ This is a hackathon project. Paper trading only. Not financial advice.
 - Akshita — 1st Year CSE
 
 Twitter: [@Anmol_patel2112](https://twitter.com/Anmol_patel2112)
+GitHub: [github.com/Xenon010101/Trading-Agent](https://github.com/Xenon010101/Trading-Agent)
