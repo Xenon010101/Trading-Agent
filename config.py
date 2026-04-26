@@ -9,5 +9,5 @@ CIRCUIT_BREAKER_THRESHOLD = -5.0
 PAPER_MODE = True
 
 # Blockchain settings
-GAS_MULTIPLIER = 3.0
+GAS_MULTIPLIER = 2.0  # reduced from 3.0 for less aggressive pricing
 TX_TIMEOUT = 300
