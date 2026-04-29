@@ -2,12 +2,12 @@ import os, time, json
 from web3 import Web3
 from eth_utils import keccak
 from dotenv import load_dotenv
+from config import SEPOLIA_RPC
 import config
 
 load_dotenv()
 
-RPC = "https://ethereum-sepolia-rpc.publicnode.com"
-w3 = Web3(Web3.HTTPProvider(RPC))
+w3 = Web3(Web3.HTTPProvider(SEPOLIA_RPC))
 
 if w3.is_connected() and w3.eth.block_number > 0:
     print(f"  Blockchain: ONLINE (block {w3.eth.block_number})")

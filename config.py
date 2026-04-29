@@ -9,5 +9,6 @@ CIRCUIT_BREAKER_THRESHOLD = -5.0
 PAPER_MODE = True
 
 # Blockchain settings
-GAS_MULTIPLIER = 2.0  # reduced from 3.0 for less aggressive pricing
+SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com"
+GAS_MULTIPLIER = 2.0
 TX_TIMEOUT = 300

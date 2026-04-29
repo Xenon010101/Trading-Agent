@@ -4,17 +4,18 @@
 from market_data import get_market_summary_advanced as get_market_summary
 from ai_brain import analyze_market
 from risk_manager import RiskManager
-from logger import log_decision, print_banner, print_session_summary
+from logger import log_decision, print_session_summary
 from executor import execute_trade, verify_kraken_connection
 from report import generate_daily_report, calculate_sharpe_ratio
-from erc8004 import setup_agent, post_checkpoint, submit_trade_intent, post_reputation
+from erc8004 import setup_agent, post_checkpoint, submit_trade_intent, post_reputation, AGENT_ID, OPERATOR_WALLET
 from datetime import date
-from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE
+from config import WATCHLIST, INTERVAL_MINUTES, MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, TAKE_PROFIT_PERCENT, STOP_LOSS_PERCENT, PAPER_MODE, SEPOLIA_RPC
 import time
 import signal
 import sys
 import os
 from dotenv import load_dotenv
+from web3 import Web3
 
 try:
     from terminal_ui import (
@@ -76,20 +77,32 @@ def check_env_keys():
 
 def print_config():
     """Display current configuration at startup"""
-    mode = "PAPER TRADING (simulation)" if PAPER_MODE else "LIVE TRADING (real money)"
+    mode = "PAPER" if PAPER_MODE else "LIVE"
     
-    print("\n" + "-" * 50)
-    print("   Configuration")
-    print("-" * 50)
-    print(f"   Mode         : {mode}")
-    print(f"   Watchlist    : {', '.join(WATCHLIST)}")
-    print(f"   Scan Interval: {INTERVAL_MINUTES} minutes")
-    print(f"   Max Trades   : {MAX_TRADES_PER_DAY}/day")
-    print(f"   Min Confidence: {MIN_CONFIDENCE}%")
-    print(f"   Max Loss     : {MAX_LOSS_PERCENT}%")
-    print(f"   Take Profit  : {TAKE_PROFIT_PERCENT}%")
-    print(f"   Stop Loss    : {STOP_LOSS_PERCENT}%")
-    print("-" * 50 + "\n")
+    if RICH_AVAILABLE:
+        ui_print_config({
+            "mode": mode,
+            "coins": WATCHLIST,
+            "scan_interval": INTERVAL_MINUTES,
+            "max_trades": MAX_TRADES_PER_DAY,
+            "min_confidence": MIN_CONFIDENCE,
+            "max_loss": MAX_LOSS_PERCENT,
+            "take_profit": TAKE_PROFIT_PERCENT,
+            "stop_loss": STOP_LOSS_PERCENT,
+        })
+    else:
+        print("\n" + "-" * 50)
+        print("   Configuration")
+        print("-" * 50)
+        print(f"   Mode         : {mode}")
+        print(f"   Watchlist    : {', '.join(WATCHLIST)}")
+        print(f"   Scan Interval: {INTERVAL_MINUTES} minutes")
+        print(f"   Max Trades   : {MAX_TRADES_PER_DAY}/day")
+        print(f"   Min Confidence: {MIN_CONFIDENCE}%")
+        print(f"   Max Loss     : {MAX_LOSS_PERCENT}%")
+        print(f"   Take Profit  : {TAKE_PROFIT_PERCENT}%")
+        print(f"   Stop Loss    : {STOP_LOSS_PERCENT}%")
+        print("-" * 50 + "\n")
 
 
 def check_exit_conditions(symbol, current_price):
@@ -105,13 +118,16 @@ def check_exit_conditions(symbol, current_price):
         return None
     
     pnl = ((current_price - buy_price) / buy_price) * 100
-    print(f"  {symbol} PnL: {pnl:.2f}%")
     
     if pnl >= TAKE_PROFIT_PERCENT:
+        if RICH_AVAILABLE:
+            ui_print_alert(f"TARGET HIT: {symbol} +{pnl:.2f}%", "success")
         print(f"  [TP] TAKE PROFIT: {symbol} +{pnl:.2f}%")
         return {"action": "SELL", "confidence": 95, "reason": f"TP hit +{pnl:.2f}%"}
     
     if pnl <= -STOP_LOSS_PERCENT:
+        if RICH_AVAILABLE:
+            ui_print_alert(f"STOP LOSS: {symbol} {pnl:.2f}%", "error")
         print(f"  [SL] STOP LOSS: {symbol} {pnl:.2f}%")
         return {"action": "SELL", "confidence": 95, "reason": f"SL hit {pnl:.2f}%"}
     
@@ -190,11 +206,28 @@ def scan_coin(symbol):
 
 def main():
     """Main entry point - runs continuous market scan loop"""
-    global shutdown_requested, scan_cycle_count, last_reset_date
+    global shutdown_requested, scan_cycle_count
     
     signal.signal(signal.SIGINT, handle_exit)
     
-    print_banner()
+    # Get blockchain status
+    try:
+        w3_temp = Web3(Web3.HTTPProvider(SEPOLIA_RPC))
+        block_number = w3_temp.eth.block_number if w3_temp.is_connected() else 0
+        eth_balance = w3_temp.from_wei(w3_temp.eth.get_balance(OPERATOR_WALLET), "ether") if w3_temp.is_connected() else 0.0
+    except:
+        block_number = 0
+        eth_balance = 0.0
+    
+    if RICH_AVAILABLE:
+        ui_banner(float(eth_balance), AGENT_ID, block_number)
+    else:
+        print("\n" + "=" * 50)
+        print("   InsiderEdge v1.0")
+        print("   AI Trading Agent (Sepolia)")
+        print("=" * 50)
+        print(f"   Balance: {eth_balance:.4f} ETH | Block: {block_number} | Agent: {AGENT_ID}")
+        print("=" * 50 + "\n")
     
     if not check_env_keys():
         print("Continuing in limited mode...\n")
@@ -207,10 +240,16 @@ def main():
     blockchain_ok = setup_agent()
     post_reputation(95)
     
-    print("Starting market scan loop. Press Ctrl+C to stop.\n")
+    if RICH_AVAILABLE:
+        ui_reputation_ok()
+        print("Starting market scan loop. Press Ctrl+C to stop.\n")
+    else:
+        print("Starting market scan loop. Press Ctrl+C to stop.\n")
     
     while not shutdown_requested:
         if date.today() > risk.last_reset_date:
+            if RICH_AVAILABLE:
+                ui_print_alert(f"New day: {date.today()} - resetting counters", "info")
             print(f"\n  New day: {date.today()}")
             risk.reset_for_new_day()
             risk.last_reset_date = date.today()
@@ -219,10 +258,16 @@ def main():
         scan_cycle_count += 1
         current_time = time.strftime("%H:%M:%S")
         
+        if RICH_AVAILABLE:
+            ui_scan_header(scan_cycle_count, WATCHLIST)
+        
         print("\n" + "=" * 50)
         print(f"  SCAN CYCLE [{current_time}] #{scan_cycle_count}")
         print(f"  Analyzing {len(WATCHLIST)} coins: {', '.join(WATCHLIST)}")
         print("=" * 50)
+        
+        checkpoint_hash = None
+        checkpoint_ok = False
         
         current_prices = {}
         for symbol in WATCHLIST:
@@ -234,20 +279,56 @@ def main():
                         current_prices[symbol] = price_data.get("price")
                     else:
                         current_prices[symbol] = price_data
+                    
+                    decision = analyze_market(data) if data else None
+                    if decision:
+                        action = decision.get("action", "HOLD")
+                        confidence = decision.get("confidence", 0)
+                        reason = decision.get("reason", "")
+                        price_val = price_data.get("price") if isinstance(price_data, dict) else price_data
+                        change = data.get("change_24h", 0)
+                        
+                        if RICH_AVAILABLE:
+                            ui_print_decision(
+                                symbol, action, confidence, float(price_val or 0),
+                                float(change), reason, checkpoint_hash, checkpoint_ok
+                            )
             except Exception as e:
+                if RICH_AVAILABLE:
+                    ui_print_alert(f"Error scanning {symbol}: {e}", "error")
                 print(f"  Error scanning {symbol}: {e}")
         
         risk.get_open_positions(current_prices)
         risk.get_summary()
         
+        if RICH_AVAILABLE:
+            positions = []
+            for sym, pos in risk.positions.items():
+                pnl = pos.get("pnl_pct", 0)
+                positions.append({
+                    "symbol": sym,
+                    "entry_price": pos.get("buy_price", 0),
+                    "current_price": current_prices.get(sym, 0),
+                    "pnl_pct": pnl,
+                    "pnl_amount": (current_prices.get(sym, 0) - pos.get("buy_price", 0))
+                })
+            ui_print_positions(positions)
+            ui_print_risk_summary(
+                risk.trades_today, MAX_TRADES_PER_DAY,
+                risk.daily_pnl_pct, len(risk.positions), risk.total_trades
+            )
+        
         if scan_cycle_count % 10 == 0:
             generate_daily_report()
             calculate_sharpe_ratio()
         
-        sleep_seconds = INTERVAL_MINUTES * 60
-        print(f"\n  Next scan in {INTERVAL_MINUTES} minute(s)...")
-        print(f"  Press Ctrl+C to stop\n")
+        if RICH_AVAILABLE:
+            ui_print_next_scan(INTERVAL_MINUTES, 0)
+        else:
+            print(f"\n  Next scan in {INTERVAL_MINUTES} minute(s)...")
+            print(f"  Press Ctrl+C to stop\n")
         
+        sleep_seconds = INTERVAL_MINUTES * 60
         while sleep_seconds > 0 and not shutdown_requested:
             time.sleep(min(sleep_seconds, 5))
             sleep_seconds -= 5
