@@ -315,7 +315,7 @@ def main():
             ui_print_positions(positions)
             ui_print_risk_summary(
                 risk.trades_today, MAX_TRADES_PER_DAY,
-                risk.daily_pnl_pct, len(risk.positions), risk.total_trades
+                risk.daily_pnl, len(risk.positions), len(risk.trade_history)
             )
         
         if scan_cycle_count % 10 == 0:

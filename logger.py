@@ -10,6 +10,11 @@ def log_decision(symbol, market_data, decision, executed):
         price_data = market_data["price"]
         if isinstance(price_data, dict):
             price = price_data.get("price", price_data.get("current_price"))
+        else:
+            price = price_data
+    
+    if price is None:
+        price = 0
     
     log_entry = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),

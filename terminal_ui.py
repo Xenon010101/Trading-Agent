@@ -42,6 +42,7 @@ C = {
     "white":       "#f8f8f2",
     "gray":        "#6272a4",
     "gold":        "#ffd700",
+    "orange":      "#ff8c00",
 }
 
 

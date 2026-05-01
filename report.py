@@ -48,7 +48,7 @@ def generate_daily_report():
     for trade in today_trades:
         symbol = trade.get("symbol", "UNKNOWN")
         action = trade.get("action")
-        price = trade.get("price", 0)
+        price = trade.get("price") or 0
         
         if action == "BUY":
             pending_buys[symbol] = price
@@ -56,6 +56,8 @@ def generate_daily_report():
         elif action == "SELL":
             if symbol in pending_buys:
                 buy_price = pending_buys[symbol]
+                if buy_price is None or buy_price == 0:
+                    continue
                 del pending_buys[symbol]
                 total_completed_pairs += 1
                 
@@ -158,12 +160,14 @@ def calculate_sharpe_ratio():
     for trade in trades:
         symbol = trade.get("symbol")
         action = trade.get("action")
-        price = trade.get("price", 0)
+        price = trade.get("price") or 0
         
         if action == "BUY":
             positions[symbol] = price
         elif action == "SELL" and symbol in positions:
             buy_price = positions[symbol]
+            if buy_price is None or buy_price == 0:
+                continue
             pnl_percent = ((price - buy_price) / buy_price) * 100
             completed_trades.append(pnl_percent / 100)
             del positions[symbol]
