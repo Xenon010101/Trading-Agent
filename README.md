@@ -291,6 +291,6 @@ MIT License — see LICENSE file for details.
 
 **InsiderEdge** — Autonomous AI Crypto Trading Agent
 
-Built by [Anmol Patel](https://github.com/Xenon010101) & [Akshita](https://github.com/Xenon010101)
+Built by [Anmol Patel](https://github.com/Xenon010101) & [Akshita](https://github.com/Akshita-2307)
 
 [Twitter](https://twitter.com/Anmol_patel2112) · [Dashboard](https://Xenon010101.github.io/Trading-Agent) · [GitHub](https://github.com/Xenon010101/Trading-Agent)
