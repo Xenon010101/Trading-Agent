@@ -1,4 +1,17 @@
 .env
+.env.*
 __pycache__
 *.pyc
+*.pyo
 trade_log.txt
+blockchain_errors.txt
+daily_report.txt
+checkpoints.jsonl
+checkpoints.json
+node_modules/
+dist/
+*.egg-info/
+.venv/
+venv/
+*.log
+*.tmp
