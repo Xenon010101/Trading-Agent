@@ -296,10 +296,12 @@ def main():
                     ui_print_alert(f"Error scanning {symbol}: {e}", "error")
                 print(f"  Error scanning {symbol}: {e}")
         
+        risk.update_portfolio_value(current_prices)
         risk.get_open_positions(current_prices)
         risk.get_summary()
-        
+
         if RICH_AVAILABLE:
+            portfolio_pnl = ((risk.total_portfolio_value - risk.starting_balance) / risk.starting_balance) * 100
             positions = []
             for sym, pos in risk.positions.items():
                 entry = pos.get("buy_price", 0)
@@ -310,12 +312,13 @@ def main():
                     "entry_price": entry,
                     "current_price": current,
                     "pnl_pct": pnl,
-                    "pnl_amount": (current - entry)
+                    "pnl_amount": (current - entry) * pos.get("quantity", 0.001)
                 })
             ui_print_positions(positions)
             ui_print_risk_summary(
                 risk.trades_today, MAX_TRADES_PER_DAY,
-                risk.daily_pnl, len(risk.positions), len(risk.trade_history)
+                risk.daily_pnl, len(risk.positions), len(risk.trade_history),
+                risk.total_portfolio_value, portfolio_pnl
             )
         
         if scan_cycle_count % 10 == 0:
