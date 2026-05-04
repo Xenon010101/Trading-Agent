@@ -8,6 +8,11 @@ STOP_LOSS_PERCENT = 0.8
 CIRCUIT_BREAKER_THRESHOLD = -5.0
 PAPER_MODE = True
 
+# Paper trading portfolio
+PAPER_BALANCE = 10000.0
+MAX_POSITION_PCT = 30
+RISK_PER_TRADE = 2
+
 # Blockchain settings
 SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com"
 GAS_MULTIPLIER = 2.0
