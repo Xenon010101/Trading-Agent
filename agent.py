@@ -194,10 +194,8 @@ def scan_coin(symbol):
             log_decision(symbol, data, decision, False)
     elif action == "SELL":
         print(f"  No position to sell in {symbol}")
-        post_checkpoint("SELL", symbol, confidence, decision["reason"])
         log_decision(symbol, data, decision, False)
     else:
-        post_checkpoint("HOLD", symbol, confidence, decision["reason"])
         log_decision(symbol, data, decision, False)
     
     time.sleep(30)
@@ -304,13 +302,15 @@ def main():
         if RICH_AVAILABLE:
             positions = []
             for sym, pos in risk.positions.items():
-                pnl = pos.get("pnl_pct", 0)
+                entry = pos.get("buy_price", 0)
+                current = current_prices.get(sym, 0)
+                pnl = ((current - entry) / entry * 100) if entry else 0
                 positions.append({
                     "symbol": sym,
-                    "entry_price": pos.get("buy_price", 0),
-                    "current_price": current_prices.get(sym, 0),
+                    "entry_price": entry,
+                    "current_price": current,
                     "pnl_pct": pnl,
-                    "pnl_amount": (current_prices.get(sym, 0) - pos.get("buy_price", 0))
+                    "pnl_amount": (current - entry)
                 })
             ui_print_positions(positions)
             ui_print_risk_summary(
