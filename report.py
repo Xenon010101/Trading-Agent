@@ -6,16 +6,16 @@ from datetime import datetime
 
 def generate_daily_report():
     """Generate and display a daily trading report from trade_log.txt"""
-    
+
     if not os.path.exists("trade_log.txt"):
         print("\n  No trade log found.")
         return None
-    
+
     with open("trade_log.txt", "r") as f:
         lines = f.readlines()
-    
+
     today = datetime.now().strftime("%Y-%m-%d")
-    
+
     today_trades = []
     for line in lines:
         try:
@@ -24,16 +24,16 @@ def generate_daily_report():
                 today_trades.append(entry)
         except:
             pass
-    
+
     if not today_trades:
         print("\n  No trades recorded today.")
         return None
-    
+
     total_trades = len(today_trades)
     buys = sum(1 for t in today_trades if t.get("action") == "BUY")
     sells = sum(1 for t in today_trades if t.get("action") == "SELL")
     holds = sum(1 for t in today_trades if t.get("action") == "HOLD")
-    
+
     win_count = 0
     total_completed_pairs = 0
     best_trade = None
@@ -41,15 +41,15 @@ def generate_daily_report():
     best_pnl = float('-inf')
     worst_pnl = float('inf')
     total_pnl = 0.0
-    
+
     coin_stats = {}
     pending_buys = {}
-    
+
     for trade in today_trades:
         symbol = trade.get("symbol", "UNKNOWN")
         action = trade.get("action")
         price = trade.get("price") or 0
-        
+
         if action == "BUY":
             pending_buys[symbol] = price
             coin_stats[symbol] = {"count": coin_stats.get(symbol, {}).get("count", 0) + 1}
@@ -60,28 +60,40 @@ def generate_daily_report():
                     continue
                 del pending_buys[symbol]
                 total_completed_pairs += 1
-                
+
                 pnl = ((price - buy_price) / buy_price) * 100
                 total_pnl += pnl
-                
+
                 if price > buy_price:
                     win_count += 1
-                
+
                 if pnl > best_pnl:
                     best_pnl = pnl
                     best_trade = symbol
                 if pnl < worst_pnl:
                     worst_pnl = pnl
                     worst_trade = symbol
-    
+
     most_traded = max(coin_stats.items(), key=lambda x: x[1]["count"])[0] if coin_stats else "N/A"
     win_rate = (win_count / total_completed_pairs * 100) if total_completed_pairs > 0 else 0
-    
+
+    try:
+        from risk_manager import RiskManager
+        from config import PAPER_BALANCE
+        risk = RiskManager()
+        portfolio_value = risk.total_portfolio_value
+        portfolio_pnl = ((portfolio_value - PAPER_BALANCE) / PAPER_BALANCE) * 100
+        available_cash = risk.available_cash
+    except Exception:
+        portfolio_value = None
+        portfolio_pnl = None
+        available_cash = None
+
     report_lines = [
-        "+--------------------------------------------+",
-        "|         DAILY TRADING REPORT               |",
-        f"|         Date: {today}                |",
-        "+--------------------------------------------+",
+        "+--------------------------------------------------+",
+        "|          DAILY TRADING REPORT                    |",
+        f"|          Date: {today}                    |",
+        "+--------------------------------------------------+",
         f"|  Total Trades    : {str(total_trades):<17} |",
         f"|  BUY Orders      : {str(buys):<17} |",
         f"|  SELL Orders     : {str(sells):<17} |",
@@ -90,21 +102,26 @@ def generate_daily_report():
         f"|  Win Rate        : {f'{win_rate:.1f}%':<17} |",
         f"|  Daily PnL       : {f'{total_pnl:+.2f}%':<17} |",
     ]
-    
+
+    if portfolio_value is not None:
+        report_lines.append(f"|  Portfolio Value : ${portfolio_value:>14,.2f} |")
+        report_lines.append(f"|  Portfolio PnL   : {f'{portfolio_pnl:+.2f}%':<17} |")
+        report_lines.append(f"|  Available Cash  : ${available_cash:>14,.2f} |")
+
     if best_trade:
         report_lines.append(f"|  Best Trade      : {f'{best_trade} {best_pnl:+.2f}%':<21} |")
     if worst_trade and worst_pnl < 0:
         report_lines.append(f"|  Worst Trade     : {f'{worst_trade} {worst_pnl:.2f}%':<21} |")
-    
+
     report_lines.append(f"|  Most Traded     : {most_traded:<17} |")
-    report_lines.append("+--------------------------------------------+")
-    
+    report_lines.append("+--------------------------------------------------+")
+
     report_text = "\n".join(report_lines)
     print(f"\n{report_text}\n")
-    
+
     with open("daily_report.txt", "w") as f:
         f.write(f"Daily Trading Report - {today}\n")
-        f.write("=" * 40 + "\n")
+        f.write("=" * 50 + "\n")
         f.write(f"Total Trades: {total_trades}\n")
         f.write(f"BUY Orders: {buys}\n")
         f.write(f"SELL Orders: {sells}\n")
@@ -112,12 +129,16 @@ def generate_daily_report():
         f.write(f"Completed Pairs: {total_completed_pairs}\n")
         f.write(f"Win Rate: {win_rate:.1f}%\n")
         f.write(f"Daily PnL: {total_pnl:+.2f}%\n")
+        if portfolio_value is not None:
+            f.write(f"Portfolio Value: ${portfolio_value:,.2f}\n")
+            f.write(f"Portfolio PnL: {portfolio_pnl:+.2f}%\n")
+            f.write(f"Available Cash: ${available_cash:,.2f}\n")
         f.write(f"Most Traded: {most_traded}\n")
         if best_trade:
             f.write(f"Best Trade: {best_trade} {best_pnl:+.2f}%\n")
         if worst_trade and worst_pnl < 0:
             f.write(f"Worst Trade: {worst_trade} {worst_pnl:.2f}%\n")
-    
+
     return {
         "total_trades": total_trades,
         "buys": buys,
@@ -127,6 +148,9 @@ def generate_daily_report():
         "win_count": win_count,
         "win_rate": win_rate,
         "total_pnl": total_pnl,
+        "portfolio_value": portfolio_value,
+        "portfolio_pnl": portfolio_pnl,
+        "available_cash": available_cash,
         "best_trade": best_trade,
         "worst_trade": worst_trade,
         "most_traded": most_traded
