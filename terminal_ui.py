@@ -273,6 +273,8 @@ def print_risk_summary(
     daily_pnl_pct: float,
     open_positions: int,
     total_trades: int,
+    portfolio_value: float = 0,
+    portfolio_pnl: float = 0,
 ):
     console.print(glow("▶ RISK ASSESSMENT", "neon_purple"))
     console.print()
@@ -292,6 +294,11 @@ def print_risk_summary(
     t.add_row("DAILY P&L",      glow(pnl_str, pnl_col))
     t.add_row("OPEN POSITIONS", glow(str(open_positions), "neon_cyan"))
     t.add_row("TOTAL TRADES",   glow(str(total_trades), "neon_green"))
+
+    if portfolio_value > 0:
+        pv_col = "neon_green" if portfolio_pnl >= 0 else "neon_red"
+        pv_str = f"${portfolio_value:,.2f} ({'+' if portfolio_pnl >= 0 else ''}{portfolio_pnl:.2f}%)"
+        t.add_row("PORTFOLIO",      glow(pv_str, pv_col))
 
     console.print(t)
     console.print()
