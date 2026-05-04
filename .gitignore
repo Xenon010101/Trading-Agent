@@ -3,7 +3,6 @@
 __pycache__
 *.pyc
 *.pyo
-trade_log.txt
 blockchain_errors.txt
 daily_report.txt
 checkpoints.jsonl
