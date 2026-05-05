@@ -32,8 +32,11 @@ def analyze_market(market_data):
         Dict with action (BUY/SELL/HOLD), confidence (0-100), and reason
     """
     change_24h = market_data.get("change_24h", 0) if market_data else 0
-    
-    print(f"  24h change: {change_24h:+.2f}%")
+    volume = market_data.get("volume", 0) if market_data else 0
+
+    volume_label = "high" if volume > 500_000_000 else "normal" if volume > 100_000_000 else "low"
+
+    print(f"  24h change: {change_24h:+.2f}% | Volume: ${volume/1e9:.2f}B ({volume_label})")
     
     # Momentum override - strong directional movement
     if change_24h > 1.5:
