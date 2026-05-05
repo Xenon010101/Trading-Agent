@@ -58,8 +58,8 @@ def get_binance_price(symbol: str) -> float | None:
     return None
 
 
-def get_binance_24h_change(symbol: str) -> float | None:
-    """24 h price-change % from Binance."""
+def get_binance_24h_ticker(symbol: str) -> dict | None:
+    """Full 24hr ticker from Binance (price, change%, volume)."""
     pair = BINANCE_MAP.get(symbol)
     if not pair:
         return None
@@ -67,9 +67,30 @@ def get_binance_24h_change(symbol: str) -> float | None:
         r = requests.get(f"{BINANCE_BASE}/ticker/24hr",
                          params={"symbol": pair}, timeout=5)
         if r.status_code == 200:
-            return float(r.json()["priceChangePercent"])
+            data = r.json()
+            return {
+                "price": float(data["lastPrice"]),
+                "change_pct": float(data["priceChangePercent"]),
+                "volume": float(data["quoteVolume"]),
+            }
     except Exception:
         pass
+    return None
+
+
+def get_binance_24h_change(symbol: str) -> float | None:
+    """24 h price-change % from Binance."""
+    ticker = get_binance_24h_ticker(symbol)
+    if ticker:
+        return ticker["change_pct"]
+    return None
+
+
+def get_binance_volume(symbol: str) -> float | None:
+    """24h trading volume in USDT from Binance."""
+    ticker = get_binance_24h_ticker(symbol)
+    if ticker:
+        return ticker["volume"]
     return None
 
 
@@ -152,26 +173,29 @@ def get_current_price(symbol: str) -> tuple[float | None, float | None]:
     # Per-symbol cache hit
     cached = _cache.get(symbol)
     if cached and (now - cached["ts"]) < CACHE_DURATION:
-        return cached["price"], cached["change_24h"]
+        return cached["price"], cached["change_24h"], cached.get("volume", 0.0)
 
     # ── Primary: Binance ──────────────────────────────────────────────
-    price = get_binance_price(symbol)
-    if price is not None:
-        change = get_binance_24h_change(symbol) or 0.0
-        _cache[symbol] = {"price": price, "change_24h": change, "ts": now}
-        return price, change
+    ticker = get_binance_24h_ticker(symbol)
+    if ticker is not None:
+        price = ticker["price"]
+        change = ticker["change_pct"]
+        volume = ticker["volume"]
+        _cache[symbol] = {"price": price, "change_24h": change, "volume": volume, "ts": now}
+        return price, change, volume
 
     # ── Fallback: CoinGecko ───────────────────────────────────────────
     price, change = get_coingecko_price(symbol)
     if price is not None:
-        _cache[symbol] = {"price": price, "change_24h": change or 0.0, "ts": now}
-        return price, change or 0.0
+        volume = 0.0
+        _cache[symbol] = {"price": price, "change_24h": change or 0.0, "volume": volume, "ts": now}
+        return price, change or 0.0, volume
 
     # ── Last resort: return stale cache rather than None ─────────────
     if cached:
-        return cached["price"], cached["change_24h"]
+        return cached["price"], cached["change_24h"], cached.get("volume", 0.0)
 
-    return None, None
+    return None, None, 0.0
 
 
 def get_price_history(symbol: str, days: int = 7) -> list[float]:
@@ -194,20 +218,30 @@ def get_price_history(symbol: str, days: int = 7) -> list[float]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def calculate_rsi(prices: list[float], period: int = 14) -> float:
-    """Standard Wilder RSI. Returns 50 if insufficient data."""
+    """Wilder RSI with proper exponential smoothing. Returns 50 if insufficient data."""
     if len(prices) < period + 1:
         return 50.0
 
     deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
-    gains  = [d if d > 0 else 0.0 for d in deltas[-period:]]
-    losses = [-d if d < 0 else 0.0 for d in deltas[-period:]]
 
-    avg_gain = sum(gains) / period
-    avg_loss = sum(losses) / period
+    avg_gain = 0.0
+    avg_loss = 0.0
+    for i, d in enumerate(deltas):
+        gain = d if d > 0 else 0.0
+        loss = -d if d < 0 else 0.0
+        if i < period:
+            avg_gain += gain
+            avg_loss += loss
+        else:
+            if i == period:
+                avg_gain /= period
+                avg_loss /= period
+            avg_gain = (avg_gain * (period - 1) + gain) / period
+            avg_loss = (avg_loss * (period - 1) + loss) / period
 
     if avg_loss == 0:
         return 100.0
-    rs  = avg_gain / avg_loss
+    rs = avg_gain / avg_loss
     return round(100 - (100 / (1 + rs)), 1)
 
 
@@ -261,7 +295,7 @@ def get_market_summary(symbol: str) -> dict | None:
 
     FIX 3: was storing a dict inside 'price' — now always a plain float.
     """
-    price, change_24h = get_current_price(symbol)
+    price, change_24h, volume = get_current_price(symbol)
 
     if price is None:
         return None
@@ -273,8 +307,12 @@ def get_market_summary(symbol: str) -> dict | None:
     trend = calculate_trend(prices) if prices else "consolidation"
 
     score = 0
-    if rsi < 40:
+    if rsi < 35:
+        score += 2
+    elif rsi < 50:
         score += 1
+    elif rsi > 70:
+        score -= 2
     elif rsi > 60:
         score -= 1
     if macd == "bullish":
@@ -285,19 +323,23 @@ def get_market_summary(symbol: str) -> dict | None:
         score += 1
     elif trend == "downtrend":
         score -= 1
+    if volume > 0:
+        score += 1
 
     signal = "bullish" if score >= 2 else "bearish" if score <= -2 else "neutral"
 
     return {
         "symbol":    symbol,
-        "price":     price,          # ← always a plain float now
+        "price":     price,
         "change_24h": change_24h,
+        "volume":    volume,
         "signals": {
             "rsi":      rsi,
             "macd":     macd,
             "trend":    trend,
             "signal":   signal,
             "momentum": score,
+            "volume":   volume,
         },
     }
 
