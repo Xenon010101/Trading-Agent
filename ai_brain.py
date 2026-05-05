@@ -13,6 +13,27 @@ KEY_2 = os.getenv("GROQ_API_KEY_2")
 API_KEYS = [k for k in [KEY_1, KEY_2] if k]
 current_key_index = 0
 
+SCORE_RULES = {
+    3:  ("BUY", 85),
+    2:  ("BUY", 75),
+    1:  ("HOLD", 50),
+    0:  ("HOLD", 50),
+    -1: ("HOLD", 50),
+    -2: ("SELL", 75),
+    -3: ("SELL", 85),
+}
+
+def _apply_score_rules(decision: dict, score: int) -> dict:
+    """Map score to action/confidence per prompt rules. Modifies decision in-place."""
+    action, conf = SCORE_RULES.get(score, ("HOLD", 50))
+    if score > 3:
+        action, conf = "BUY", 85
+    elif score < -3:
+        action, conf = "SELL", 85
+    decision["action"] = action
+    decision["confidence"] = conf
+    return decision
+
 
 def get_groq_client(key_index=None):
     """Get Groq client with optional key rotation"""
@@ -141,35 +162,14 @@ Output ONLY the JSON, nothing else.
         action = decision.get("action", "HOLD")
         reason = decision.get("reason", "")
         
-        # Extract score from reason
+        # Extract score from reason and apply rules
         score = 0
-        score_match = re.search(r'[Ss]core\s*([+-]?\d+)', reason)
+        score_match = re.search(r'[Ss]core\s*([+-]?\d+)', decision.get("reason", ""))
         if score_match:
             score = int(score_match.group(1))
-        
-        # Enforce confidence based on score
-        if score >= 3:
-            decision["action"] = "BUY"
-            decision["confidence"] = 85
-        elif score == 2:
-            decision["action"] = "BUY"
-            decision["confidence"] = 75
-        elif score == 1:
-            decision["action"] = "BUY"
-            decision["confidence"] = 65
-        elif score <= -3:
-            decision["action"] = "SELL"
-            decision["confidence"] = 85
-        elif score == -2:
-            decision["action"] = "SELL"
-            decision["confidence"] = 75
-        elif score == -1:
-            decision["action"] = "SELL"
-            decision["confidence"] = 65
-        else:
-            decision["action"] = "HOLD"
-            decision["confidence"] = 50
-        
+
+        _apply_score_rules(decision, score)
+
         # Only trade if confidence >= MIN_CONFIDENCE
         if decision["confidence"] < MIN_CONFIDENCE:
             print(f"  [HOLD] Skipping trade - low confidence ({decision['confidence']}%)")
@@ -200,33 +200,12 @@ Output ONLY the JSON, nothing else.
                     if start_idx != -1 and end_idx > 0:
                         json_str = raw_response[start_idx:end_idx]
                         decision = json.loads(json_str)
-                        reason = decision.get("reason", "")
-                        score_match = re.search(r'[Ss]core\s*([+-]?\d+)', reason)
+                        score_match = re.search(r'[Ss]core\s*([+-]?\d+)', decision.get("reason", ""))
                         score = int(score_match.group(1)) if score_match else 0
-                        
-                        if score >= 3:
-                            decision["action"] = "BUY"
-                            decision["confidence"] = 85
-                        elif score == 2:
-                            decision["action"] = "BUY"
-                            decision["confidence"] = 75
-                        elif score == 1:
-                            decision["action"] = "BUY"
-                            decision["confidence"] = 65
-                        elif score <= -3:
-                            decision["action"] = "SELL"
-                            decision["confidence"] = 85
-                        elif score == -2:
-                            decision["action"] = "SELL"
-                            decision["confidence"] = 75
-                        elif score == -1:
-                            decision["action"] = "SELL"
-                            decision["confidence"] = 65
-                        else:
-                            decision["action"] = "HOLD"
-                            decision["confidence"] = 50
-                        
-                        if decision["confidence"] < 60:
+
+                        _apply_score_rules(decision, score)
+
+                        if decision["confidence"] < MIN_CONFIDENCE:
                             decision["action"] = "HOLD"
                         
                         return decision
