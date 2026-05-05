@@ -38,14 +38,27 @@ def analyze_market(market_data):
 
     print(f"  24h change: {change_24h:+.2f}% | Volume: ${volume/1e9:.2f}B ({volume_label})")
     
-    # Momentum override - strong directional movement
+    # Momentum override - strong directional movement with RSI veto
+    rsi = market_data.get("signals", {}).get("rsi", 50) if market_data else 50
     if change_24h > 1.5:
+        if rsi > 75:
+            return {
+                "action": "HOLD",
+                "confidence": 50,
+                "reason": f"Momentum +{change_24h:.2f}% but RSI {rsi:.0f} overbought — vetoed"
+            }
         return {
             "action": "BUY",
             "confidence": 70,
             "reason": f"BUY: {change_24h:+.2f}% 24h momentum above +1.5% threshold"
         }
     elif change_24h < -1.5:
+        if rsi < 25:
+            return {
+                "action": "HOLD",
+                "confidence": 50,
+                "reason": f"Momentum {change_24h:.2f}% but RSI {rsi:.0f} oversold — vetoed"
+            }
         return {
             "action": "SELL",
             "confidence": 70,
