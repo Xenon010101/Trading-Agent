@@ -296,8 +296,6 @@ def main():
                 print(f"  Error scanning {symbol}: {e}")
         
         risk.update_portfolio_value(current_prices)
-        risk.get_open_positions(current_prices)
-        risk.get_summary()
 
         if RICH_AVAILABLE:
             portfolio_pnl = ((risk.total_portfolio_value - risk.starting_balance) / risk.starting_balance) * 100
@@ -319,6 +317,9 @@ def main():
                 risk.daily_pnl, len(risk.positions), len(risk.trade_history),
                 risk.total_portfolio_value, portfolio_pnl
             )
+        else:
+            risk.get_open_positions(current_prices)
+            risk.get_summary()
         
         if scan_cycle_count % 10 == 0:
             generate_daily_report()
