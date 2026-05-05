@@ -138,13 +138,13 @@ def scan_coin(symbol):
     """Analyze a single coin and execute if conditions are met"""
     if risk.check_circuit_breaker():
         print(f"   Circuit breaker active - skipping {symbol}")
-        return None
+        return None, None
     
     data = get_market_summary(symbol)
     
     if data is None:
         print(f"   No data for {symbol}")
-        return None
+        return None, None
     
     price_data = data.get("price")
     if isinstance(price_data, dict):
@@ -156,7 +156,7 @@ def scan_coin(symbol):
     
     if not current_price or current_price == 0:
         print(f"   No price for {symbol}")
-        return None
+        return None, None
     
     is_holding = symbol in risk.positions
     
@@ -173,7 +173,7 @@ def scan_coin(symbol):
                 post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
                 post_reputation(exit_decision["confidence"])
                 print(f"  Exited {symbol} position")
-        return data
+        return data, None
     
     decision = analyze_market(data)
     action = decision["action"]
@@ -199,7 +199,7 @@ def scan_coin(symbol):
         log_decision(symbol, data, decision, False)
     
     time.sleep(30)
-    return data
+    return data, decision
 
 
 def main():
@@ -270,15 +270,14 @@ def main():
         current_prices = {}
         for symbol in WATCHLIST:
             try:
-                data = scan_coin(symbol)
+                data, decision = scan_coin(symbol)
                 if data:
                     price_data = data.get("price")
                     if isinstance(price_data, dict):
                         current_prices[symbol] = price_data.get("price")
                     else:
                         current_prices[symbol] = price_data
-                    
-                    decision = analyze_market(data) if data else None
+
                     if decision:
                         action = decision.get("action", "HOLD")
                         confidence = decision.get("confidence", 0)

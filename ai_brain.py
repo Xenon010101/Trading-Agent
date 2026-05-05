@@ -31,12 +31,7 @@ def analyze_market(market_data):
     Returns:
         Dict with action (BUY/SELL/HOLD), confidence (0-100), and reason
     """
-    # Extract 24h change for momentum override
-    change_24h = 0
-    if market_data and "price" in market_data:
-        price_data = market_data["price"]
-        if isinstance(price_data, dict):
-            change_24h = price_data.get("change_24h", 0)
+    change_24h = market_data.get("change_24h", 0) if market_data else 0
     
     print(f"  24h change: {change_24h:+.2f}%")
     
