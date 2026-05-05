@@ -59,7 +59,6 @@ class RiskManager:
         return 0.0, 0.0
 
     def record_trade(self, symbol, action, price, confidence):
-        self.trades_today += 1
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
         if action == "BUY":
@@ -67,6 +66,7 @@ class RiskManager:
             if quantity <= 0 or allocation > self.available_cash:
                 print(f"BUY rejected: insufficient cash or invalid position size for {symbol}")
                 return
+            self.trades_today += 1
             self.positions[symbol] = {
                 "buy_price": price,
                 "quantity": quantity,
@@ -77,6 +77,7 @@ class RiskManager:
             print(f"BUY recorded: {symbol} {quantity:.6f} at ${price:,.2f} (${allocation:.2f})")
 
         elif action == "SELL":
+            self.trades_today += 1
             if symbol in self.positions:
                 pos = self.positions[symbol]
                 buy_price = pos["buy_price"]
