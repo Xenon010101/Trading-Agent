@@ -160,13 +160,13 @@ def get_coingecko_ohlc(symbol: str, days: int = 7) -> list[float]:
 #  UNIFIED  — always call these from agent.py / ai_brain.py
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_current_price(symbol: str) -> tuple[float | None, float | None]:
+def get_current_price(symbol: str) -> tuple[float | None, float | None, float]:
     """
-    Returns (price: float, change_24h: float) or (None, None).
+    Returns (price: float, change_24h: float, volume: float) or (None, None, 0.0).
 
     FIX 1 + 2: was returning a (dict, float) tuple and used a shared
     cache timestamp for all symbols. Now each symbol has its own cache
-    entry and this function always returns two plain floats.
+    entry and this function always returns three plain floats.
     """
     now = time.time()
 
