@@ -18,12 +18,21 @@ class RiskManager:
         self.available_cash = PAPER_BALANCE
         self.total_portfolio_value = PAPER_BALANCE
 
-    def check_circuit_breaker(self):
-        if self.daily_pnl <= CIRCUIT_BREAKER_THRESHOLD:
+    def check_circuit_breaker(self, current_prices=None):
+        realized = self.daily_pnl
+        unrealized = 0.0
+        if current_prices and self.positions:
+            for symbol, pos in self.positions.items():
+                cp = current_prices.get(symbol)
+                if cp and cp > 0:
+                    unrealized += ((cp - pos["buy_price"]) / pos["buy_price"]) * 100
+        combined = realized + (unrealized / max(1, len(self.positions))) if self.positions else realized
+        if combined <= CIRCUIT_BREAKER_THRESHOLD:
             self.circuit_broken = True
             print("\n")
             print("[!!!] CIRCUIT BREAKER TRIGGERED [!!!]")
-            print(f"Daily loss {self.daily_pnl:.2f}% exceeded threshold {CIRCUIT_BREAKER_THRESHOLD}%")
+            print(f"Realized P&L: {realized:.2f}%, Unrealized avg: {unrealized/max(1,len(self.positions)):.2f}%, Combined: {combined:.2f}%")
+            print(f"Threshold: {CIRCUIT_BREAKER_THRESHOLD}%")
             print("All trading halted for today")
             print("Restart agent tomorrow to resume")
             print("\n")
@@ -40,7 +49,7 @@ class RiskManager:
             print(f"Cannot trade: Confidence {confidence} below minimum {MIN_CONFIDENCE}")
             return False
 
-        if self.daily_pnl < -MAX_LOSS_PERCENT:
+        if self.daily_pnl <= -MAX_LOSS_PERCENT:
             print(f"Cannot trade: Daily loss {self.daily_pnl}% exceeds max {MAX_LOSS_PERCENT}%")
             return False
 

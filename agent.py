@@ -297,6 +297,9 @@ def main():
         
         risk.update_portfolio_value(current_prices)
 
+        if risk.check_circuit_breaker(current_prices) and RICH_AVAILABLE:
+            ui_print_alert("CIRCUIT BREAKER — trading halted", "error")
+
         if RICH_AVAILABLE:
             portfolio_pnl = ((risk.total_portfolio_value - risk.starting_balance) / risk.starting_balance) * 100
             positions = []
