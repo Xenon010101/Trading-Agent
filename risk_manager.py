@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import date as datetime
+from datetime import date
 from config import MAX_TRADES_PER_DAY, MIN_CONFIDENCE, MAX_LOSS_PERCENT, CIRCUIT_BREAKER_THRESHOLD, PAPER_BALANCE, MAX_POSITION_PCT, RISK_PER_TRADE
 
 
@@ -11,7 +11,7 @@ class RiskManager:
         self.trade_history = []
         self.positions = {}
         self.start_time = time.time()
-        self.last_reset_date = datetime.today()
+        self.last_reset_date = date.today()
         self.circuit_broken = False
 
         self.starting_balance = PAPER_BALANCE
