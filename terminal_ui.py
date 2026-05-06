@@ -223,7 +223,8 @@ def print_decision(
     console.print(ckpt)
 
     if reason:
-        console.print(f"     ├─ [{C['gray']}]{reason[:100]}[/]")
+        safe_reason = reason[:100].replace("[", "\\[").replace("]", "\\]")
+        console.print(f"     ├─ [{C['gray']}]{safe_reason}[/]")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
