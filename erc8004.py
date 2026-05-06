@@ -300,11 +300,7 @@ def post_checkpoint(action, symbol, confidence, reason):
         score           = min(max(int(confidence), 0), 100)   # clamp 0-100
         notes           = (str(reason)[:200] if reason else "AI decision")
 
-        tx_nonce = _nonce_mgr.next(wallet_address)           # ← shared nonce, no collision
-        
-        current_gas_price = _safe_gas_price()
-        gas_price_wei = w3.from_wei(current_gas_price, 'gwei')
-        print(f"  Debug: gas_price={gas_price_wei:.1f} gwei, nonce={tx_nonce}")
+        tx_nonce = _nonce_mgr.next(wallet_address)
 
         tx = validation.functions.postAttestation(
             AGENT_ID, checkpoint_hash, score, 1, b"", notes
@@ -407,9 +403,9 @@ def setup_agent():
         eth_balance    = w3.from_wei(balance, "ether")
         print(f"  Operator ETH balance: {eth_balance} ETH")
         if eth_balance < 0.01:
-            print(f"  ⚠️  Low balance — get more Sepolia ETH from a faucet!")
+            print(f"  [WARN] Low balance — get more Sepolia ETH from a faucet!")
         if not REPUTATION_ENABLED:
-            print(f"  ℹ️  Reputation registry not set — reputation calls are simulated")
+            print(f"  [INFO] Reputation registry not set — reputation calls are simulated")
     except Exception as e:
         _log_error("setup_agent", str(e))
 
