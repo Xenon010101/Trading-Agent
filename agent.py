@@ -238,7 +238,13 @@ def main():
         verify_kraken_connection()
     
     blockchain_ok = setup_agent()
-    
+
+    if not blockchain_ok:
+        print("\n  [WARN] Blockchain setup failed — on-chain checkpoints disabled")
+        print("  Trading will continue but no ERC-8004 attestations will be submitted\n")
+    elif RICH_AVAILABLE:
+        ui_reputation_ok()
+
     if RICH_AVAILABLE:
         ui_reputation_ok()
         print("Starting market scan loop. Press Ctrl+C to stop.\n")
