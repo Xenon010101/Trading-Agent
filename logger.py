@@ -1,7 +1,7 @@
 import json
 import time
 import os
-from config import WATCHLIST
+from config import WATCHLIST, PAPER_MODE
 
 
 def log_decision(symbol, market_data, decision, executed):
@@ -52,7 +52,7 @@ def print_session_summary():
 
 def print_banner():
     coins = ", ".join(WATCHLIST)
-    mode = "PAPER TRADING" if os.getenv("PAPER_MODE", "True").lower() == "true" else "LIVE TRADING"
+    mode = "PAPER TRADING" if PAPER_MODE else "LIVE TRADING"
     print("\n=============================================")
     print("           InsiderEdge v1.0")
     print("      Autonomous AI Crypto Trading Agent")
