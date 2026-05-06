@@ -3,6 +3,14 @@ import os
 import math
 from datetime import datetime
 
+REPORT_WIDTH = 52
+
+def _report_row(label, value):
+    return f"|  {label:<16}: {str(value):<{REPORT_WIDTH - 25}} |"
+
+def _report_header():
+    return "+" + "-" * (REPORT_WIDTH - 2) + "+"
+
 
 def generate_daily_report():
     """Generate and display a daily trading report from trade_log.txt"""
@@ -90,31 +98,30 @@ def generate_daily_report():
         available_cash = None
 
     report_lines = [
-        "+--------------------------------------------------+",
-        "|          DAILY TRADING REPORT                    |",
-        f"|          Date: {today}                    |",
-        "+--------------------------------------------------+",
-        f"|  Total Trades    : {str(total_trades):<17} |",
-        f"|  BUY Orders      : {str(buys):<17} |",
-        f"|  SELL Orders     : {str(sells):<17} |",
-        f"|  HOLD Decisions  : {str(holds):<17} |",
-        f"|  Completed Pairs : {str(total_completed_pairs):<17} |",
-        f"|  Win Rate        : {f'{win_rate:.1f}%':<17} |",
-        f"|  Daily PnL       : {f'{total_pnl:+.2f}%':<17} |",
+        _report_header(),
+        _report_row("DATE", today),
+        _report_header(),
+        _report_row("Total Trades", total_trades),
+        _report_row("BUY Orders", buys),
+        _report_row("SELL Orders", sells),
+        _report_row("HOLD Decisions", holds),
+        _report_row("Completed Pairs", total_completed_pairs),
+        _report_row("Win Rate", f"{win_rate:.1f}%"),
+        _report_row("Daily PnL", f"{total_pnl:+.2f}%"),
     ]
 
     if portfolio_value is not None:
-        report_lines.append(f"|  Portfolio Value : ${portfolio_value:>14,.2f} |")
-        report_lines.append(f"|  Portfolio PnL   : {f'{portfolio_pnl:+.2f}%':<17} |")
-        report_lines.append(f"|  Available Cash  : ${available_cash:>14,.2f} |")
+        report_lines.append(_report_row("Portfolio Value", f"${portfolio_value:,.2f}"))
+        report_lines.append(_report_row("Portfolio PnL", f"{portfolio_pnl:+.2f}%"))
+        report_lines.append(_report_row("Available Cash", f"${available_cash:,.2f}"))
 
     if best_trade:
-        report_lines.append(f"|  Best Trade      : {f'{best_trade} {best_pnl:+.2f}%':<21} |")
+        report_lines.append(_report_row("Best Trade", f"{best_trade} {best_pnl:+.2f}%"))
     if worst_trade and worst_pnl < 0:
-        report_lines.append(f"|  Worst Trade     : {f'{worst_trade} {worst_pnl:.2f}%':<21} |")
+        report_lines.append(_report_row("Worst Trade", f"{worst_trade} {worst_pnl:.2f}%"))
 
-    report_lines.append(f"|  Most Traded     : {most_traded:<17} |")
-    report_lines.append("+--------------------------------------------------+")
+    report_lines.append(_report_row("Most Traded", most_traded))
+    report_lines.append(_report_header())
 
     report_text = "\n".join(report_lines)
     print(f"\n{report_text}\n")
