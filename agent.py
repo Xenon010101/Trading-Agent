@@ -343,8 +343,9 @@ def main():
         
         sleep_seconds = INTERVAL_MINUTES * 60
         while sleep_seconds > 0 and not shutdown_requested:
-            time.sleep(min(sleep_seconds, 5))
-            sleep_seconds -= 5
+            sleep_amount = min(sleep_seconds, 5)
+            time.sleep(sleep_amount)
+            sleep_seconds -= sleep_amount
 
 
 if __name__ == "__main__":
