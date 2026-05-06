@@ -223,7 +223,6 @@ Output ONLY the JSON, nothing else.
 
 
 if __name__ == "__main__":
-    # Test with fake data when run directly
-    fake_data = {"symbol": "BTC", "price": {"price": 65000}, "signals": {"signal": "bullish"}}
+    fake_data = {"symbol": "BTC", "price": 65000.0, "change_24h": 1.2, "volume": 1_500_000_000, "signals": {"rsi": 45.0, "macd": "bullish", "trend": "uptrend", "signal": "bullish", "momentum": 1}}
     result = analyze_market(fake_data)
     print(result)
