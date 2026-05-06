@@ -59,14 +59,15 @@ def generate_daily_report():
         price = trade.get("price") or 0
 
         if action == "BUY":
-            pending_buys[symbol] = price
+            pending_buys.setdefault(symbol, []).append(price)
             coin_stats[symbol] = {"count": coin_stats.get(symbol, {}).get("count", 0) + 1}
         elif action == "SELL":
-            if symbol in pending_buys:
-                buy_price = pending_buys[symbol]
+            if symbol in pending_buys and pending_buys[symbol]:
+                buy_price = pending_buys[symbol].pop(0)
                 if buy_price is None or buy_price == 0:
                     continue
-                del pending_buys[symbol]
+                if not pending_buys[symbol]:
+                    del pending_buys[symbol]
                 total_completed_pairs += 1
 
                 pnl = ((price - buy_price) / buy_price) * 100
