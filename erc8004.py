@@ -297,7 +297,7 @@ def post_checkpoint(action, symbol, confidence, reason):
         validation      = w3.eth.contract(address=Web3.to_checksum_address(VALIDATION_REGISTRY), abi=VALIDATION_ABI)
         checkpoint_str  = f"{AGENT_ID}{symbol}{action}{int(time.time())}"
         checkpoint_hash = w3.keccak(text=checkpoint_str)
-        score           = min(max(int(confidence), 90), 100)   # clamp 90-100
+        score           = min(max(int(confidence), 0), 100)   # clamp 0-100
         notes           = (str(reason)[:200] if reason else "AI decision")
 
         tx_nonce = _nonce_mgr.next(wallet_address)           # ← shared nonce, no collision
