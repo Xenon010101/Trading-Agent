@@ -164,11 +164,12 @@ def scan_coin(symbol):
         print(f"  Holding {symbol} - checking exits")
         exit_decision = check_exit_conditions(symbol, current_price)
         if exit_decision:
+            allocation = risk.positions.get(symbol, {}).get("cost_basis", 0)
             result = execute_trade("SELL", symbol)
             if result is not None:
                 risk.record_trade(symbol, "SELL", current_price, exit_decision["confidence"])
                 log_decision(symbol, data, exit_decision, True)
-                submit_trade_intent("SELL", symbol)
+                submit_trade_intent("SELL", symbol, allocation)
                 time.sleep(3)
                 post_checkpoint("SELL", symbol, exit_decision["confidence"], exit_decision["reason"])
                 post_reputation(exit_decision["confidence"])
@@ -184,7 +185,8 @@ def scan_coin(symbol):
         if result is not None:
             risk.record_trade(symbol, "BUY", current_price, confidence)
             log_decision(symbol, data, decision, True)
-            submit_trade_intent("BUY", symbol)
+            allocation = risk.positions.get(symbol, {}).get("cost_basis", 0)
+            submit_trade_intent("BUY", symbol, allocation)
             time.sleep(3)
             post_checkpoint("BUY", symbol, confidence, decision["reason"])
             post_reputation(confidence)

@@ -206,7 +206,7 @@ REPUTATION_ABI = [
 #  Public functions
 # ──────────────────────────────────────────────────────────────────────────────
 
-def submit_trade_intent(action, symbol):
+def submit_trade_intent(action, symbol, amount_usd=None):
     global _last_action, _last_symbol
 
     # Deduplicate identical consecutive signals
@@ -221,11 +221,13 @@ def submit_trade_intent(action, symbol):
             _log_error("submit_trade_intent", "Insufficient balance")
             return None
 
+        amount = int(amount_usd * 100) if amount_usd else 50000
+
         router   = w3.eth.contract(address=Web3.to_checksum_address(RISK_ROUTER), abi=RISK_ROUTER_ABI)
         nonce    = router.functions.getIntentNonce(AGENT_ID).call()
         deadline = int(time.time()) + 300
 
-        intent = (AGENT_ID, wallet_address, f"{symbol}USD", action, 50000, 100, nonce, deadline)
+        intent = (AGENT_ID, wallet_address, f"{symbol}USD", action, amount, 100, nonce, deadline)
 
         domain_data   = {"name": "RiskRouter", "version": "1", "chainId": 11155111, "verifyingContract": Web3.to_checksum_address(RISK_ROUTER)}
         message_types = {"TradeIntent": [
@@ -241,7 +243,7 @@ def submit_trade_intent(action, symbol):
         message_data  = {
             "agentId": AGENT_ID, "agentWallet": wallet_address,
             "pair": f"{symbol}USD", "action": action,
-            "amountUsdScaled": 50000, "maxSlippageBps": 100,
+            "amountUsdScaled": amount, "maxSlippageBps": 100,
             "nonce": nonce, "deadline": deadline,
         }
 
